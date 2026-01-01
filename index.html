@@ -1,11 +1,196 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>liumo的个人主页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的数字空间 | Fanyouhao</title>
+    <style>
+        /* --- 1. 核心极简 CSS --- */
+        :root {
+            --bg-color: #f4f4f5;
+            --card-bg: #ffffff;
+            --text-main: #18181b;
+            --text-sub: #71717a;
+            --accent: #2563eb; /* 科技蓝 */
+            --border: #e4e4e7;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 暗黑模式变量 */
+        [data-theme="dark"] {
+            --bg-color: #09090b;
+            --card-bg: #18181b;
+            --text-main: #f4f4f5;
+            --text-sub: #a1a1aa;
+            --accent: #60a5fa;
+            --border: #27272a;
+            --shadow: none;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-main); padding: 2rem; display: flex; justify-content: center; min-height: 100vh; }
+        
+        /* --- 2. Bento Grid 布局系统 --- */
+        .container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4列布局 */
+            grid-template-rows: auto auto auto;
+            gap: 1.5rem;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        /* 手机端适配：变为单列 */
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        /* 通用卡片样式 */
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .card:hover { transform: translateY(-2px); transition: transform 0.2s; }
+
+        /* --- 3. 各个功能模块 --- */
+        
+        /* 个人介绍模块 (占2列2行) */
+        .profile-card { grid-column: span 2; grid-row: span 2; }
+        .avatar { width: 80px; height: 80px; background: var(--border); border-radius: 50%; margin-bottom: 1rem; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+        p { color: var(--text-sub); line-height: 1.6; }
+
+        /* 时钟/状态模块 (占1列1行) */
+        .time-card { grid-column: span 1; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; letter-spacing: 1px; }
+
+        /* 切换主题按钮 (占1列1行) */
+        .theme-card { cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+
+        /* 复习资料列表 (占2列2行) */
+        .resources-card { grid-column: span 2; grid-row: span 2; }
+        .card-header { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .file-list { list-style: none; }
+        .file-list li { padding: 0.8rem 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .file-list li:last-child { border-bottom: none; }
+        .file-link { text-decoration: none; color: var(--text-main); font-size: 0.95rem; }
+        .file-link:hover { color: var(--accent); }
+        .tag { font-size: 0.75rem; background: var(--border); padding: 0.2rem 0.6rem; border-radius: 1rem; color: var(--text-sub); }
+
+        /* HTML 作品展示 (占2列1行) */
+        .projects-card { grid-column: span 2; }
+        .project-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .mini-project { background: var(--bg-color); padding: 1rem; border-radius: 1rem; text-decoration: none; color: var(--text-main); text-align: center; font-size: 0.9rem; font-weight: 600; }
+        .mini-project:hover { background: var(--accent); color: white; }
+
+        /* 社交链接 (占2列1行) */
+        .social-card { grid-column: span 2; display: flex; gap: 1rem; align-items: center; justify-content: space-around; }
+        .social-link { text-decoration: none; color: var(--text-sub); font-weight: 500; }
+        .social-link:hover { color: var(--accent); }
+
+    </style>
 </head>
 <body>
-    <h1>Hello, World! 这是 fanyouhao.top</h1>
-    <p>我的网站正在建设中...</p>
+
+    <div class="container">
+        <div class="card profile-card">
+            <div>
+                <div class="avatar">🐱</div> <h1 id="greeting">你好</h1>
+                <p>我是 Fanyouhao。欢迎来到我的个人知识库。这里存放着我的学习笔记、网页实验和一些奇怪的想法。<br><br>正在折腾：HTML / CSS / Linux</p>
+            </div>
+            <div style="margin-top: 2rem;">
+                <span class="tag" style="background:var(--accent); color:white;">#Student</span>
+                <span class="tag">#Minimalist</span>
+            </div>
+        </div>
+
+        <div class="card time-card" id="clock">
+            00:00
+        </div>
+
+        <div class="card theme-card" onclick="toggleTheme()" title="切换明暗模式">
+            🌗
+        </div>
+
+        <div class="card projects-card">
+            <div class="card-header">🚀 我的实验室</div>
+            <div class="project-grid">
+                <a href="my-projects/game.html" class="mini-project">🎮 猜数字游戏</a>
+                <a href="my-projects/demo.html" class="mini-project">🎨 CSS 动画测试</a>
+            </div>
+        </div>
+
+        <div class="card resources-card">
+            <div class="card-header">📚 复习资料库</div>
+            <ul class="file-list">
+                <li>
+                    <a href="files/math.pdf" class="file-link">高等数学复习笔记.pdf</a>
+                    <span class="tag">PDF</span>
+                </li>
+                <li>
+                    <a href="files/english.docx" class="file-link">六级核心词汇表.docx</a>
+                    <span class="tag">Word</span>
+                </li>
+                <li>
+                    <a href="#" class="file-link">Linux 常用命令速查</a>
+                    <span class="tag">Link</span>
+                </li>
+                <li>
+                    <a href="#" class="file-link">C 语言指针详解</a>
+                    <span class="tag">MD</span>
+                </li>
+                 <li>
+                    <a href="#" class="file-link">电路分析基础</a>
+                    <span class="tag">PDF</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card social-card">
+            <a href="https://github.com/liumo666-create" class="social-link">GitHub</a>
+            <a href="mailto:your-email@example.com" class="social-link">Email Me</a>
+            <a href="#" class="social-link">Bilibili</a>
+        </div>
+    </div>
+
+    <script>
+        // --- 功能 1: 实时时钟 ---
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('clock').innerText = timeString;
+            
+            // 动态问候
+            const hour = now.getHours();
+            let greet = "你好";
+            if (hour < 12) greet = "早上好";
+            else if (hour < 18) greet = "下午好";
+            else greet = "晚上好";
+            document.getElementById('greeting').innerText = greet + "，Fanyouhao";
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 功能 2: 暗黑模式切换 ---
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            if (current === 'dark') {
+                html.setAttribute('data-theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+            }
+        }
+        
+        // 自动检测系统偏好
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
 </body>
 </html>
