@@ -3,177 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的数字空间 | Fanyouhao</title>
+    <title>Fanyouhao | 数字空间</title>
     <style>
-        /* --- 1. 核心极简 CSS --- */
+        /* --- 1. 定义变量与动态背景 --- */
         :root {
-            --bg-color: #f4f4f5;
-            --card-bg: #ffffff;
-            --text-main: #18181b;
-            --text-sub: #71717a;
-            --accent: #2563eb; /* 科技蓝 */
-            --border: #e4e4e7;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --text-main: #1d1d1f;
+            --text-sub: #555;
+            --accent: #2563eb;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         }
 
-        /* 暗黑模式变量 */
+        /* 暗黑模式 */
         [data-theme="dark"] {
-            --bg-color: #09090b;
-            --card-bg: #18181b;
-            --text-main: #f4f4f5;
+            --glass-bg: rgba(20, 20, 25, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f5f5f7;
             --text-sub: #a1a1aa;
             --accent: #60a5fa;
-            --border: #27272a;
-            --shadow: none;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-main); padding: 2rem; display: flex; justify-content: center; min-height: 100vh; }
-        
-        /* --- 2. Bento Grid 布局系统 --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            /* 动态渐变背景 */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        /* 背景动画关键帧 */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- 2. 布局与卡片样式 --- */
         .container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4列布局 */
+            grid-template-columns: repeat(4, 1fr);
             grid-template-rows: auto auto auto;
-            gap: 1.5rem;
+            gap: 1.2rem;
             max-width: 1000px;
             width: 100%;
+            z-index: 1; /* 保证在背景之上 */
         }
 
-        /* 手机端适配：变为单列 */
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
         }
 
-        /* 通用卡片样式 */
+        /* 毛玻璃卡片核心代码 */
         .card {
-            background: var(--card-bg);
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px); /* 模糊效果 */
+            -webkit-backdrop-filter: blur(12px);
             border-radius: 1.5rem;
             padding: 1.5rem;
-            border: 1px solid var(--border);
+            border: 1px solid var(--glass-border);
             box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .card:hover { transform: translateY(-2px); transition: transform 0.2s; }
 
-        /* --- 3. 各个功能模块 --- */
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
+        }
+
+        /* --- 3. 内部元素样式 --- */
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
+        p { font-size: 0.95rem; color: var(--text-sub); line-height: 1.6; }
         
-        /* 个人介绍模块 (占2列2行) */
-        .profile-card { grid-column: span 2; grid-row: span 2; }
-        .avatar { width: 80px; height: 80px; background: var(--border); border-radius: 50%; margin-bottom: 1rem; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
-        h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
-        p { color: var(--text-sub); line-height: 1.6; }
+        .tag { background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; color: var(--text-sub); border: 1px solid var(--glass-border); }
+        [data-theme="dark"] .tag { background: rgba(255,255,255,0.1); }
 
-        /* 时钟/状态模块 (占1列1行) */
-        .time-card { grid-column: span 1; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; letter-spacing: 1px; }
+        /* 链接列表 */
+        .link-list a {
+            display: block;
+            text-decoration: none;
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.3);
+            border: 1px solid transparent;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        [data-theme="dark"] .link-list a { background: rgba(0,0,0,0.2); }
+        .link-list a:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        .link-list a:hover .tag { color: white; background: rgba(255,255,255,0.2); }
 
-        /* 切换主题按钮 (占1列1行) */
-        .theme-card { cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        /* 备忘录输入框 */
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: rgba(0,0,0,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 10px;
+            resize: none;
+            color: var(--text-main);
+            font-family: inherit;
+        }
+        textarea:focus { outline: 2px solid var(--accent); }
 
-        /* 复习资料列表 (占2列2行) */
-        .resources-card { grid-column: span 2; grid-row: span 2; }
-        .card-header { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-        .file-list { list-style: none; }
-        .file-list li { padding: 0.8rem 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .file-list li:last-child { border-bottom: none; }
-        .file-link { text-decoration: none; color: var(--text-main); font-size: 0.95rem; }
-        .file-link:hover { color: var(--accent); }
-        .tag { font-size: 0.75rem; background: var(--border); padding: 0.2rem 0.6rem; border-radius: 1rem; color: var(--text-sub); }
+        /* 倒计时数字 */
+        .countdown-num { font-size: 2.5rem; font-weight: 800; color: var(--accent); }
+        .countdown-label { font-size: 0.9rem; color: var(--text-sub); }
 
-        /* HTML 作品展示 (占2列1行) */
-        .projects-card { grid-column: span 2; }
-        .project-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .mini-project { background: var(--bg-color); padding: 1rem; border-radius: 1rem; text-decoration: none; color: var(--text-main); text-align: center; font-size: 0.9rem; font-weight: 600; }
-        .mini-project:hover { background: var(--accent); color: white; }
-
-        /* 社交链接 (占2列1行) */
-        .social-card { grid-column: span 2; display: flex; gap: 1rem; align-items: center; justify-content: space-around; }
-        .social-link { text-decoration: none; color: var(--text-sub); font-weight: 500; }
-        .social-link:hover { color: var(--accent); }
+        /* 网格位置控制 */
+        .profile { grid-column: span 2; grid-row: span 1; }
+        .countdown { grid-column: span 1; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .toggle { grid-column: span 1; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; }
+        .memo { grid-column: span 2; }
+        .resources { grid-column: span 2; grid-row: span 2; }
 
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="card profile-card">
-            <div>
-                <div class="avatar">🐱</div> <h1 id="greeting">你好</h1>
-                <p>我是 Fanyouhao。欢迎来到我的个人知识库。这里存放着我的学习笔记、网页实验和一些奇怪的想法。<br><br>正在折腾：HTML / CSS / Linux</p>
-            </div>
-            <div style="margin-top: 2rem;">
-                <span class="tag" style="background:var(--accent); color:white;">#Student</span>
-                <span class="tag">#Minimalist</span>
-            </div>
+        <div class="card profile">
+            <h1 id="greeting">你好</h1>
+            <p>这里是 Fanyouhao 的备考中心。<br>电子信息工程 / 嵌入式 / NBA爱好者<br>“Stay focus, stay quiet.”</p>
         </div>
 
-        <div class="card time-card" id="clock">
-            00:00
+        <div class="card countdown">
+            <div class="countdown-label">距离期末考试还有</div>
+            <div id="days-left" class="countdown-num">0</div>
+            <div class="countdown-label">天</div>
         </div>
 
-        <div class="card theme-card" onclick="toggleTheme()" title="切换明暗模式">
+        <div class="card toggle" onclick="toggleTheme()" title="切换主题">
             🌗
         </div>
 
-        <div class="card projects-card">
-            <div class="card-header">🚀 我的实验室</div>
-            <div class="project-grid">
-                <a href="my-projects/game.html" class="mini-project">🎮 猜数字游戏</a>
-                <a href="my-projects/demo.html" class="mini-project">🎨 CSS 动画测试</a>
+        <div class="card resources">
+            <h2>📚 资料补给站</h2>
+            <div class="link-list">
+                <a href="https://wwaof.lanzoum.com/iDxHW3f2zuij" target="_blank">
+                    <span>数字视频技术复习</span>
+                    <span class="tag">DOCX</span>
+                </a>
+                <a href="#" target="_blank">
+                    <span>通信原理笔记 (待传)</span>
+                    <span class="tag">PDF</span>
+                </a>
+                <a href="#" target="_blank">
+                    <span>嵌入式系统总结 (待传)</span>
+                    <span class="tag">PDF</span>
+                </a>
+                <a href="my-projects/game.html">
+                    <span>🎮 摸鱼小游戏</span>
+                    <span class="tag">HTML</span>
+                </a>
             </div>
         </div>
 
-  <div class="card resources-card">
-    <div class="card-header">📚 复习资料库</div>
-    <ul class="file-list">
-        <li>
-            <a href="my-projects/files/video.docx" class="file-link">数字视频技术复习.docx</a>
-            <span class="tag">Word</span>
-        </li>
-    </ul>
-</div>
-        <div class="card social-card">
-            <a href="#" class="social-link">QQ:1106518165</a>
-            <a href="#" class="social-link">wechat:a1106518165</a>
-            <a href="https://www.douyin.com/user/MS4wLjABAAAAKD7gXoehr1Yq_yVSHfiRBmtKUISmPRnlXwGkDqRYWhM?from_tab_name=main" class="social-link">抖音</a>
+        <div class="card memo">
+            <h2>📝 随手记 (自动保存)</h2>
+            <textarea id="memo-pad" placeholder="在此输入今天的复习计划..."></textarea>
+        </div>
+
+        <div class="card" style="grid-column: span 4; text-align: center; font-size: 0.9rem; color: var(--text-sub);">
+            Fanyouhao.top © 2025 | Create with Cloudflare & GitHub
         </div>
     </div>
 
     <script>
-        // --- 功能 1: 实时时钟 ---
-        function updateClock() {
+        // --- 功能1: 考试倒计时 (目标: 2026年1月7日) ---
+        function updateCountdown() {
+            // 注意：月份是从0开始的，所以1月是0
+            const examDate = new Date(2026, 0, 7); 
             const now = new Date();
-            const timeString = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('clock').innerText = timeString;
+            const diff = examDate - now;
             
-            // 动态问候
-            const hour = now.getHours();
-            let greet = "你好";
-            if (hour < 12) greet = "早上好";
-            else if (hour < 18) greet = "下午好";
-            else greet = "晚上好";
-            document.getElementById('greeting').innerText = greet + "，Fanyouhao";
+            // 计算剩余天数，向上取整
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            
+            // 如果考试过了，显示其他内容
+            const displayDays = days > 0 ? days : "Fighting";
+            document.getElementById('days-left').innerText = displayDays;
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+        updateCountdown();
 
-        // --- 功能 2: 暗黑模式切换 ---
+        // --- 功能2: 动态问候 ---
+        const hour = new Date().getHours();
+        let greet = "你好";
+        if (hour < 6) greet = "还没睡？注意身体";
+        else if (hour < 12) greet = "早上好，新的一天";
+        else if (hour < 18) greet = "下午好，记得喝水";
+        else greet = "晚上好，享受宁静";
+        document.getElementById('greeting').innerText = greet + "，Fanyouhao";
+
+        // --- 功能3: 明暗模式切换 ---
         function toggleTheme() {
             const html = document.documentElement;
             const current = html.getAttribute('data-theme');
-            if (current === 'dark') {
-                html.setAttribute('data-theme', 'light');
-            } else {
-                html.setAttribute('data-theme', 'dark');
-            }
+            html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
         }
-        
-        // 自动检测系统偏好
+        // 自动跟随系统
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.setAttribute('data-theme', 'dark');
         }
+
+        // --- 功能4: 备忘录自动保存 (LocalStorage) ---
+        const memoPad = document.getElementById('memo-pad');
+        // 页面加载时，读取保存的内容
+        memoPad.value = localStorage.getItem('my-memo') || '';
+        // 每次输入时，保存内容
+        memoPad.addEventListener('input', () => {
+            localStorage.setItem('my-memo', memoPad.value);
+        });
     </script>
 </body>
 </html>
