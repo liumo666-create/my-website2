@@ -389,9 +389,9 @@
             @keyframes spin { 100% { transform: rotate(360deg); } }
         </style>
 
-        <script>
-            // 保持你的 API 地址不变
+     <script>
             const API = "https://api.fanyouhao.top"; 
+            let currentParentId = null; // 记录当前正在回复谁
 
             function formatTime(ts) {
                 if(!ts) return '';
@@ -400,72 +400,111 @@
                        date.getMinutes().toString().padStart(2,'0');
             }
 
-            // 🟢 加载留言 (增加了删除按钮)
+            // 🟢 核心逻辑：把扁平的留言整理成“树形结构”
+            function organizeComments(comments) {
+                const map = {};
+                const roots = [];
+                
+                // 1. 初始化所有节点
+                comments.forEach(c => {
+                    c.children = [];
+                    map[c.id] = c;
+                });
+
+                // 2. 找爸爸
+                comments.forEach(c => {
+                    if (c.parent_id && map[c.parent_id]) {
+                        // 如果有爸爸，就钻到爸爸的怀里 (children数组)
+                        map[c.parent_id].children.push(c);
+                        // 按时间正序排子评论 (旧的在上面)
+                        map[c.parent_id].children.sort((a,b) => a.id - b.id);
+                    } else {
+                        // 没有爸爸，就是根评论
+                        roots.push(c);
+                    }
+                });
+
+                // 根评论按时间倒序 (新的在上面)
+                return roots.sort((a,b) => b.id - a.id);
+            }
+
+            // 🟢 生成单条留言的 HTML (递归渲染)
+            function renderComment(msg, isChild = false) {
+                const safeNick = msg.nickname.replace(/</g, "&lt;");
+                const safeContent = msg.content.replace(/</g, "&lt;");
+                const timeStr = formatTime(msg.created_at);
+                
+                // 如果是子回复，左边距大一点 (margin-left)
+                const style = isChild ? 
+                    'margin-left: 40px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 10px; font-size: 0.9em;' : 
+                    '';
+
+                let html = `
+                    <div class="chat-bubble" style="position:relative; ${style}">
+                        <div class="chat-header">
+                            <span style="color:${isChild ? '#a78bfa' : 'var(--accent)'}">${safeNick}</span>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <span class="chat-time">${timeStr}</span>
+                                <span onclick="startReply(${msg.id}, '${safeNick}')" style="cursor:pointer; opacity:0.8;" title="回复TA">↩️</span>
+                                <span onclick="deleteMsg(${msg.id}, this)" style="cursor:pointer; opacity:0.6;" title="删除">🗑️</span>
+                            </div>
+                        </div>
+                        <div class="chat-content">${safeContent}</div>
+                    </div>
+                `;
+
+                // 如果它有孩子，就递归渲染孩子
+                if (msg.children && msg.children.length > 0) {
+                    msg.children.forEach(child => {
+                        html += renderComment(child, true);
+                    });
+                }
+
+                return html;
+            }
+
             async function loadMessages() {
                 const listDiv = document.getElementById('msg-list');
-                const btnIcon = document.querySelector('.icon-btn i');
-                btnIcon.classList.add('spin');
-
                 try {
                     const res = await fetch(API);
-                    const data = await res.json();
+                    const rawData = await res.json();
                     
-                    if (data.length === 0) {
+                    if (rawData.length === 0) {
                         listDiv.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">还没有人说话...</div>';
-                    } else {
-                        listDiv.innerHTML = data.map(msg => {
-                            const safeNick = msg.nickname.replace(/</g, "&lt;");
-                            const safeContent = msg.content.replace(/</g, "&lt;");
-                            const timeStr = formatTime(msg.created_at);
-                            
-                            return `
-                                <div class="chat-bubble" style="position:relative;">
-                                    <div class="chat-header">
-                                        <span>${safeNick}</span>
-                                        <div style="display:flex; gap:10px; align-items:center;">
-                                            <span class="chat-time">${timeStr}</span>
-                                            <span onclick="deleteMsg(${msg.id})" style="cursor:pointer; color:#666; font-size:12px;" title="删除(仅管理员)">
-                                                🗑️
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="chat-content">${safeContent}</div>
-                                </div>
-                            `;
-                        }).join('');
+                        return;
                     }
+
+                    // 整理成树形结构
+                    const treeData = organizeComments(rawData);
+                    
+                    // 渲染 HTML
+                    listDiv.innerHTML = treeData.map(root => renderComment(root)).join('');
+                    
                 } catch (e) {
                     listDiv.innerHTML = '<div style="text-align:center; color:#ef4444;">连接失败</div>';
-                } finally {
-                    setTimeout(() => btnIcon.classList.remove('spin'), 500);
                 }
             }
 
-            // 🟢 删除留言功能 (新增)
-            async function deleteMsg(id) {
-                // 1. 弹窗询问密码
-                const password = prompt("⚠️ 站长管理模式 \n请输入删除密码：");
+            // 🟢 点击回复按钮
+            function startReply(id, nickname) {
+                currentParentId = id;
+                const inputArea = document.getElementById('content-input');
+                const nickArea = document.getElementById('nick-input');
                 
-                // 如果用户点了取消或没填，直接结束
-                if (!password) return;
+                // 视觉提示
+                inputArea.placeholder = `回复 @${nickname} ... (按ESC取消)`;
+                inputArea.focus();
+                
+                // 闪烁一下提醒用户
+                inputArea.style.background = "rgba(139, 92, 246, 0.2)";
+                setTimeout(() => inputArea.style.background = "", 500);
+            }
 
-                // 2. 发送删除请求给 Worker
-                try {
-                    const res = await fetch(API, {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id: id, password: password })
-                    });
-
-                    if (res.status === 200) {
-                        // 删除成功，刷新列表
-                        await loadMessages();
-                    } else {
-                        alert("❌ 密码错误，删除失败！");
-                    }
-                } catch (e) {
-                    alert("网络错误");
-                }
+            // 取消回复状态 (当用户清空输入框或者发完消息后)
+            function resetReply() {
+                currentParentId = null;
+                const inputArea = document.getElementById('content-input');
+                inputArea.placeholder = "说点什么...";
             }
 
             async function submitMsg() {
@@ -476,22 +515,27 @@
                 const content = contentInput.value.trim();
 
                 if (!nickname || !content) {
-                    contentInput.style.border = "1px solid #ef4444";
-                    setTimeout(() => contentInput.style.border = "", 2000);
+                    alert("昵称和内容不能为空");
                     return;
                 }
 
                 const originalIcon = btn.innerHTML;
-                btn.innerHTML = '<i class="ri-loader-4-line spin"></i>';
+                btn.innerHTML = '⏳';
                 btn.disabled = true;
 
                 try {
                     await fetch(API, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nickname, content })
+                        body: JSON.stringify({ 
+                            nickname, 
+                            content, 
+                            parent_id: currentParentId // 🟢 关键：带上父ID
+                        })
                     });
+                    
                     contentInput.value = '';
+                    resetReply(); // 发送成功后重置回复状态
                     await loadMessages();
                 } catch (e) {
                     alert("发送失败");
@@ -500,6 +544,33 @@
                     btn.disabled = false;
                 }
             }
+            
+            // 之前的删除函数保持不变
+            async function deleteMsg(id, btnElement) {
+                if (!confirm("⚠️ 确定要删除吗？\n(如果有子回复也会残留显示)")) return;
+                const password = prompt("🔐 站长密码：");
+                if (!password) return;
+
+                btnElement.innerText = "⏳";
+                try {
+                    const res = await fetch(API, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: id, password: password })
+                    });
+                    if (res.status === 200) {
+                        await loadMessages();
+                    } else {
+                        alert("❌ 密码错误");
+                        btnElement.innerText = "🗑️";
+                    }
+                } catch (e) { alert("网络错误"); }
+            }
+
+            // 监听 ESC 键取消回复
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Escape") resetReply();
+            });
 
             loadMessages();
         </script>
