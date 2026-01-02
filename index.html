@@ -270,7 +270,7 @@
 
   <div class="card msg-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                <h2 style="margin:0; font-size: 1.2rem;">💬 极客留言墙</h2>
+                <h2 style="margin:0; font-size: 1.2rem;">💬 留言墙</h2>
                 <button onclick="loadMessages()" class="icon-btn" title="刷新留言">
                     <i class="ri-refresh-line"></i>
                 </button>
@@ -390,10 +390,9 @@
         </style>
 
         <script>
-            // 🟢 保持你刚才配置好的域名！
+            // 保持你的 API 地址不变
             const API = "https://api.fanyouhao.top"; 
 
-            // 格式化时间戳 (把 1700000 变成 "12:30")
             function formatTime(ts) {
                 if(!ts) return '';
                 const date = new Date(ts);
@@ -401,11 +400,10 @@
                        date.getMinutes().toString().padStart(2,'0');
             }
 
+            // 🟢 加载留言 (增加了删除按钮)
             async function loadMessages() {
                 const listDiv = document.getElementById('msg-list');
                 const btnIcon = document.querySelector('.icon-btn i');
-                
-                // 让刷新图标转起来
                 btnIcon.classList.add('spin');
 
                 try {
@@ -413,18 +411,23 @@
                     const data = await res.json();
                     
                     if (data.length === 0) {
-                        listDiv.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">还没有人说话，快来抢沙发！</div>';
+                        listDiv.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">还没有人说话...</div>';
                     } else {
                         listDiv.innerHTML = data.map(msg => {
                             const safeNick = msg.nickname.replace(/</g, "&lt;");
                             const safeContent = msg.content.replace(/</g, "&lt;");
-                            const timeStr = formatTime(msg.created_at); // 解析时间
+                            const timeStr = formatTime(msg.created_at);
                             
                             return `
-                                <div class="chat-bubble">
+                                <div class="chat-bubble" style="position:relative;">
                                     <div class="chat-header">
                                         <span>${safeNick}</span>
-                                        <span class="chat-time">${timeStr}</span>
+                                        <div style="display:flex; gap:10px; align-items:center;">
+                                            <span class="chat-time">${timeStr}</span>
+                                            <span onclick="deleteMsg(${msg.id})" style="cursor:pointer; color:#666; font-size:12px;" title="删除(仅管理员)">
+                                                🗑️
+                                            </span>
+                                        </div>
                                     </div>
                                     <div class="chat-content">${safeContent}</div>
                                 </div>
@@ -432,10 +435,36 @@
                         }).join('');
                     }
                 } catch (e) {
-                    listDiv.innerHTML = '<div style="text-align:center; color:#ef4444;">连接失败，请检查网络</div>';
+                    listDiv.innerHTML = '<div style="text-align:center; color:#ef4444;">连接失败</div>';
                 } finally {
-                    // 停止旋转
                     setTimeout(() => btnIcon.classList.remove('spin'), 500);
+                }
+            }
+
+            // 🟢 删除留言功能 (新增)
+            async function deleteMsg(id) {
+                // 1. 弹窗询问密码
+                const password = prompt("⚠️ 站长管理模式 \n请输入删除密码：");
+                
+                // 如果用户点了取消或没填，直接结束
+                if (!password) return;
+
+                // 2. 发送删除请求给 Worker
+                try {
+                    const res = await fetch(API, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: id, password: password })
+                    });
+
+                    if (res.status === 200) {
+                        // 删除成功，刷新列表
+                        await loadMessages();
+                    } else {
+                        alert("❌ 密码错误，删除失败！");
+                    }
+                } catch (e) {
+                    alert("网络错误");
                 }
             }
 
@@ -443,19 +472,17 @@
                 const nickInput = document.getElementById('nick-input');
                 const contentInput = document.getElementById('content-input');
                 const btn = document.getElementById('send-btn');
-
                 const nickname = nickInput.value.trim();
                 const content = contentInput.value.trim();
 
                 if (!nickname || !content) {
-                    // 简单的震动提醒
                     contentInput.style.border = "1px solid #ef4444";
                     setTimeout(() => contentInput.style.border = "", 2000);
                     return;
                 }
 
                 const originalIcon = btn.innerHTML;
-                btn.innerHTML = '<i class="ri-loader-4-line spin"></i>'; // 变成加载圈
+                btn.innerHTML = '<i class="ri-loader-4-line spin"></i>';
                 btn.disabled = true;
 
                 try {
@@ -464,8 +491,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ nickname, content })
                     });
-                    
-                    contentInput.value = ''; // 只清空内容，保留昵称方便继续发
+                    contentInput.value = '';
                     await loadMessages();
                 } catch (e) {
                     alert("发送失败");
@@ -475,7 +501,6 @@
                 }
             }
 
-            // 页面加载时自动拉取
             loadMessages();
         </script>
 
