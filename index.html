@@ -187,9 +187,9 @@
                 <span class="tag">HTML</span>
             </a>
         </div>
-
-        <div class="card" style="grid-column: span 4; min-height: 400px;">
-    <h2>💬 匿名留言板 (LeanCloud版)</h2>
+<div class="card" style="grid-column: span 4; min-height: 400px;">
+    <h2>💬 留言墙</h2>
+    
     <div id="vcomments"></div>
     
     <script src='https://unpkg.com/valine/dist/Valine.min.js'></script>
@@ -197,13 +197,42 @@
     <script>
         new Valine({
             el: '#vcomments',
-            appId: 'MT3tT7HJdbCI44mGobpnrqW8-MdYXbMMI',
-            appKey: 'ur4GLUzGMjbjx39l1gZPt19p',
-            placeholder: '既然来了，就留个言再走吧！(无需登录)',
-            avatar: 'monsterid', // 头像风格
-            visitor: true // 统计阅读量
+            appId: 'MT3tT7HJdbCI44mGobpnrqW8-MdYXbMMI',       // 🔴 必填
+            appKey: 'ur4GLUzGMjbjx39l1gZPt19p',     // 🔴 必填
+            serverURLs: 'https://mt3tt7hj.api.lncldglobal.com', // 🔴 必填！去LeanCloud后台复制，例如 https://xxx.api.lncldglobal.com
+            
+            // --- 功能定制区 ---
+            placeholder: '写点什么... (昵称是必填的哦)',
+            meta: ['nick'],         // ⭐ 关键：只保留 'nick' (昵称)，隐藏邮箱和网址
+            requiredFields: ['nick'], // ⭐ 关键：强制昵称必填
+            avatar: '',             // 设为空，隐藏默认头像，让界面更像纯文字
+            pageSize: 10,           // 每页显示多少条
+            recordIP: true,         // 记录评论者IP
+            enableQQ: false         // 关闭QQ自动获取头像
         })
     </script>
+
+    <style>
+        /* 1. 隐藏多余元素 */
+        .v .vheader .vinput { border-bottom: 1px dashed #666 !important; } /* 输入框样式微调 */
+        .v .vbtn { background: var(--accent) !important; color: white !important; border-radius: 5px !important; }
+        .v .vlist .vcard .vhead .vnick { float: none !important; font-weight: bold; margin-right: 5px; color: var(--accent); }
+        .v .vlist .vcard .vhead .vnick:after { content: "："; } /* 在名字后面加个冒号 */
+        
+        /* 2. 隐藏时间、系统版本、头像等杂乱信息 */
+        .v .vlist .vcard .vh { border-bottom: 1px solid rgba(0,0,0,0.05) !important; padding: 10px 0 !important; }
+        .v .vlist .vcard .vhead .vsys { display: none !important; } /* 隐藏系统信息 */
+        .v .vlist .vcard .vhead .vtime { display: none !important; } /* 隐藏时间(如果你想留着就删掉这行) */
+        .v .vlist .vcard .vimg { display: none !important; } /* 隐藏头像图片 */
+        .v .vlist .vcard .vh .vcontent { padding: 0 !important; margin: 0 !important; display: inline !important; } /* 让内容跟在名字后面 */
+        
+        /* 3. 让名字和内容在同一行显示 */
+        .v .vlist .vcard .vhead { display: inline !important; }
+        .v .vlist .vcard .vcontent p { display: inline !important; }
+        
+        /* 4. 隐藏 Valine 版权标 */
+        .v .vpower { display: none !important; }
+    </style>
 </div>
 
         <div class="footer">
