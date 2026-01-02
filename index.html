@@ -126,7 +126,43 @@
         #vcomments .vnick { color: var(--accent) !important; font-weight: bold; }
         #vcomments p { color: #ccc !important; }
         #vcomments .vsys { display: none !important; }
-        
+        /* --- 新增：赛博时钟模块 --- */
+.clock-card { 
+    grid-column: span 1; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3) !important; /* 让时钟背景稍微深一点，突出数字 */
+}
+
+.clock-time {
+    font-family: 'Courier New', monospace; /* 等宽字体，更有极客感 */
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 10px var(--accent); /* 核心：霓虹发光效果 */
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.clock-sec {
+    font-size: 1rem;
+    color: var(--text-sub);
+    margin-top: 8px; /* 秒数稍微小一点，且往下放 */
+}
+
+.blink { animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.clock-date {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    margin-top: 5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
         /* --- 5. 底部 Dock 栏 --- */
         .dock-container {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
@@ -185,16 +221,18 @@
         <div class="card countdown" data-tilt data-tilt-glare data-tilt-max-glare="0.5">
             <i class="ri-timer-flash-line" style="font-size:1.5rem; color:var(--accent); margin-bottom:10px;"></i>
             <div id="days-left" class="days-num">0</div>
-            <div class="days-label">Days to Exam</div>
+            <div class="days-label">距离期末考试还有</div>
         </div>
 
-        <div class="card status-card" data-tilt>
-            <div>
-                <div style="font-weight:bold; font-size:1.1rem;">System</div>
-                <div style="font-size:0.8rem; color:#64748b;">Online</div>
-            </div>
-            <div class="status-dot"></div>
-        </div>
+        <div class="card clock-card" data-tilt>
+    <div class="clock-time">
+        <span id="h">00</span>
+        <span class="blink">:</span>
+        <span id="m">00</span>
+        <span id="s" class="clock-sec">00</span>
+    </div>
+    <div id="full-date" class="clock-date">LOADING...</div>
+</div>
 
         <div class="card links-card" data-tilt>
             <h2 style="margin-bottom:20px; display:flex; align-items:center; gap:10px;">
@@ -269,7 +307,33 @@
             requiredFields: ['nick'],
             avatar: '' 
         });
-
+// --- 6. 赛博时钟逻辑 ---
+function startClock() {
+    const today = new Date();
+    
+    // 1. 获取时间
+    const h = String(today.getHours()).padStart(2, '0');
+    const m = String(today.getMinutes()).padStart(2, '0');
+    const s = String(today.getSeconds()).padStart(2, '0');
+    
+    // 2. 更新数字
+    document.getElementById('h').innerText = h;
+    document.getElementById('m').innerText = m;
+    document.getElementById('s').innerText = s;
+    
+    // 3. 更新日期 (格式：MON 01/05)
+    const weeks = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const week = weeks[today.getDay()];
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    document.getElementById('full-date').innerText = `${week} ${month}/${day}`;
+    
+    // 4. 每秒刷新
+    setTimeout(startClock, 1000);
+}
+// 启动时钟
+startClock();
         // --- 5. 专注模式 ---
         let isFocus = false;
         function toggleFocus() {
