@@ -428,39 +428,61 @@
                 return roots.sort((a,b) => b.id - a.id);
             }
 
-            // 🟢 生成单条留言的 HTML (递归渲染)
+          // 🟢 生成单条留言的 HTML (样式优化版)
             function renderComment(msg, isChild = false) {
                 const safeNick = msg.nickname.replace(/</g, "&lt;");
                 const safeContent = msg.content.replace(/</g, "&lt;");
                 const timeStr = formatTime(msg.created_at);
                 
-                // 如果是子回复，左边距大一点 (margin-left)
-                const style = isChild ? 
-                    'margin-left: 40px; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 10px; font-size: 0.9em;' : 
-                    '';
+                // 🎨 差异化样式：如果是回复，就做得小一点、深一点
+                let customStyle = '';
+                let bubbleClass = 'chat-bubble'; // 默认样式类
 
-                let html = `
-                    <div class="chat-bubble" style="position:relative; ${style}">
-                        <div class="chat-header">
-                            <span style="color:${isChild ? '#a78bfa' : 'var(--accent)'}">${safeNick}</span>
-                            <div style="display:flex; gap:10px; align-items:center;">
-                                <span class="chat-time">${timeStr}</span>
-                                <span onclick="startReply(${msg.id}, '${safeNick}')" style="cursor:pointer; opacity:0.8;" title="回复TA">↩️</span>
-                                <span onclick="deleteMsg(${msg.id}, this)" style="cursor:pointer; opacity:0.6;" title="删除">🗑️</span>
-                            </div>
-                        </div>
-                        <div class="chat-content">${safeContent}</div>
-                    </div>
-                `;
+                if (isChild) {
+                    // 子留言：深色背景、紧凑、左侧紫线、字体小
+                    customStyle = `
+                        margin-left: 45px; 
+                        margin-top: -5px;
+                        background: rgba(0, 0, 0, 0.3); 
+                        border: none;
+                        border-left: 3px solid rgba(139, 92, 246, 0.5); 
+                        border-radius: 4px 10px 10px 4px;
+                        padding: 6px 10px; 
+                        font-size: 0.85rem;
+                        width: fit-content; /* 👈 关键：宽度自适应，不占满整行 */
+                        max-width: 90%;
+                    `;
+                } else {
+                    // 父留言：保持原样
+                    customStyle = 'position:relative;';
+                }
 
-                // 如果它有孩子，就递归渲染孩子
+                // 递归渲染子留言HTML
+                let childrenHtml = '';
                 if (msg.children && msg.children.length > 0) {
                     msg.children.forEach(child => {
-                        html += renderComment(child, true);
+                        childrenHtml += renderComment(child, true);
                     });
                 }
 
-                return html;
+                // 渲染当前卡片
+                // 注意：style="${customStyle}" 会覆盖掉 class 里的部分默认样式
+                return `
+                    <div class="${bubbleClass}" style="${customStyle}">
+                        <div class="chat-header" style="margin-bottom:2px;">
+                            <span style="color:${isChild ? '#a78bfa' : 'var(--accent)'}; font-weight:bold;">
+                                ${isChild ? '↳ ' : ''}${safeNick}
+                            </span>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <span class="chat-time" style="font-size:0.7em;">${timeStr}</span>
+                                <span onclick="startReply(${msg.id}, '${safeNick}')" style="cursor:pointer; opacity:0.8; font-size:0.9em;" title="回复">↩️</span>
+                                <span onclick="deleteMsg(${msg.id}, this)" style="cursor:pointer; opacity:0.6; font-size:0.9em;" title="删除">🗑️</span>
+                            </div>
+                        </div>
+                        <div class="chat-content" style="line-height:1.4;">${safeContent}</div>
+                    </div>
+                    ${childrenHtml}
+                `;
             }
 
             async function loadMessages() {
