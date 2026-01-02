@@ -601,13 +601,7 @@ startClock();
             body.birthday-active { overflow: hidden; }
         </style>
 <script>
-            // 🔴 新增：自动越狱代码（防止被卡在容器里）
-            // 只要发现贺卡不是直接在 body 下面，就把它搬过去
-            var overlay = document.getElementById('birthday-overlay');
-            if (overlay && overlay.parentNode !== document.body) {
-                document.body.appendChild(overlay);
-            }
-
+            
             // ... 下面是你原本的代码 ...
             window.addEventListener('load', function() {
                 // 锁住滚动条
