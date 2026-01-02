@@ -188,10 +188,23 @@
             </a>
         </div>
 
-        <div class="card memo">
-            <h2>📝 随手记</h2>
-            <textarea id="memo-pad" placeholder="在此输入今天的复习计划..."></textarea>
-        </div>
+        <div class="card" style="grid-column: span 4; min-height: 400px;">
+    <h2>💬 匿名留言板 (LeanCloud版)</h2>
+    <div id="vcomments"></div>
+    
+    <script src='https://unpkg.com/valine/dist/Valine.min.js'></script>
+    
+    <script>
+        new Valine({
+            el: '#vcomments',
+            appId: 'MT3tT7HJdbCI44mGobpnrqW8-MdYXbMMI',
+            appKey: 'ur4GLUzGMjbjx39l1gZPt19p',
+            placeholder: '既然来了，就留个言再走吧！(无需登录)',
+            avatar: 'monsterid', // 头像风格
+            visitor: true // 统计阅读量
+        })
+    </script>
+</div>
 
         <div class="footer">
             Fanyouhao.top © 2025
@@ -229,11 +242,7 @@
         }
 
         // 备忘录逻辑
-        const memoPad = document.getElementById('memo-pad');
-        memoPad.value = localStorage.getItem('my-memo') || '';
-        memoPad.addEventListener('input', () => {
-            localStorage.setItem('my-memo', memoPad.value);
-        });
+  
     </script>
 </body>
 </html>
