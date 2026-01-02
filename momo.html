@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momo's Gallery | 墨墨的喵星球</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        /* 继承主页的高级暗黑极光风格 */
+        :root {
+            --bg-deep: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #8b5cf6; /* 紫色调适合猫咪 */
+        }
+        body {
+            margin: 0; padding: 20px;
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            min-height: 100vh;
+        }
+        /* 动态背景 */
+        .bg-gradient {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background: radial-gradient(circle at 50% 30%, rgba(139, 92, 246, 0.3), transparent 60%),
+                        radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.2), transparent 50%);
+        }
+        
+        /* 容器 */
+        .container {
+            max-width: 600px; /* 手机浏览体验最佳宽度 */
+            margin: 0 auto;
+            padding-bottom: 50px;
+        }
+
+        /* 顶部导航 */
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 30px; padding: 10px 0;
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(10px); /* 磨砂顶栏 */
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .back-btn {
+            text-decoration: none; color: #fff; font-size: 1.2rem;
+            background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px;
+            display: flex; align-items: center; gap: 5px; transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--accent); }
+
+        /* 照片卡片 */
+        .photo-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: fadeIn 0.8s ease backwards;
+        }
+        .photo-card img {
+            width: 100%; height: auto;
+            border-radius: 15px;
+            display: block;
+        }
+        .caption {
+            padding: 15px 5px 5px 5px;
+            color: #ccc; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-btn"><i class="ri-arrow-left-line"></i> Back</a>
+            <h2 style="margin:0;">🐾 Momo's Life</h2>
+            <div style="width:70px;"></div> </div>
+
+        <div class="photo-card" style="animation-delay: 0.1s;">
+            <img src="photos/1.jpg" alt="Momo">
+            <div class="caption"><i class="ri-camera-lens-line"></i> 墨墨大王凝视</div>
+        </div>
+
+        <div class="photo-card" style="animation-delay: 0.2s;">
+            <img src="photos/2.jpg" alt="Momo">
+            <div class="caption"><i class="ri-zzz-line"></i> 下午睡觉觉</div>
+        </div>
+
+        <div style="text-align:center; color:#666; margin-top:50px;">
+            <p>—— To be continued ——</p>
+        </div>
+    </div>
+</body>
+</html>
