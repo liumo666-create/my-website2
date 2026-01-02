@@ -252,11 +252,56 @@
             </a>
         </div>
 
-        <div class="card msg-card">
-            <h2 style="margin-bottom:20px;">💬 留言</h2>
-            <div id="vcomments"></div>
-        </div>
+      <div class="card" style="grid-column: span 4; min-height: 400px;">
+    <h2>💬 留言墙 (D1极速版)</h2>
+    
+    <div id="msg-list" style="height: 300px; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px;">
+        <div style="text-align:center; color:#888;">正在连接数据库...</div>
     </div>
+
+    <div style="display: flex; gap: 10px;">
+        <input type="text" id="nick" placeholder="昵称" style="width: 80px; padding: 8px; border-radius: 5px; border: none;">
+        <input type="text" id="msg" placeholder="说点什么..." style="flex: 1; padding: 8px; border-radius: 5px; border: none;">
+        <button onclick="send()" id="btn" style="padding: 8px 15px; border-radius: 5px; border: none; background: var(--accent); color: white; cursor: pointer;">发送</button>
+    </div>
+
+    <script>
+        // 🔴 这里填你刚才复制的 Worker 链接
+        const API = "https://guestbook.liumo666.workers.dev/"; 
+
+        async function load() {
+            try {
+                const res = await fetch(API);
+                const data = await res.json();
+                document.getElementById('msg-list').innerHTML = data.map(m => 
+                    `<div style="margin-bottom:8px; border-bottom:1px dashed #333; padding-bottom:5px;">
+                        <strong style="color:var(--accent)">${m.nickname}</strong>: ${m.content}
+                    </div>`
+                ).join('');
+            } catch(e) {
+                document.getElementById('msg-list').innerHTML = "加载失败，请检查 Worker 地址";
+            }
+        }
+
+        async function send() {
+            const nick = document.getElementById('nick').value;
+            const msg = document.getElementById('msg').value;
+            if(!nick || !msg) return alert("都得填！");
+            
+            document.getElementById('btn').innerText = "...";
+            await fetch(API, {
+                method: 'POST',
+                body: JSON.stringify({ nickname: nick, content: msg })
+            });
+            document.getElementById('nick').value = '';
+            document.getElementById('msg').value = '';
+            document.getElementById('btn').innerText = "发送";
+            load();
+        }
+        
+        load(); // 页面加载就刷新
+    </script>
+</div>
 
     <div class="dock-container">
         <a href="#" class="dock-icon" data-title="Home"><i class="ri-home-4-line"></i></a>
@@ -296,17 +341,7 @@
         const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
         document.getElementById('days-left').innerText = days > 0 ? days : "NOW";
 
-        // --- 4. 初始化 Valine (记得填你的ID) ---
-        new Valine({
-            el: '#vcomments',
-            appId: 'MT3tT7HJdbCI44mGobpnrqW8-MdYXbMMI', // 🔴 记得填 LeanCloud ID
-            appKey: 'ur4GLUzGMjbjx39l1gZPt19p', // 🔴 记得填 LeanCloud Key
-            serverURLs: 'https://mt3tt7hj.api.lncldglobal.com', // 🔴 记得填 LeanCloud API
-            placeholder: 'Leave a message...',
-            meta: ['nick'], 
-            requiredFields: ['nick'],
-            avatar: '' 
-        });
+  
 // --- 6. 赛博时钟逻辑 ---
 function startClock() {
     const today = new Date();
