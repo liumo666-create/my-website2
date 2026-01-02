@@ -252,57 +252,216 @@
             </a>
         </div>
 
-      <div class="card" style="grid-column: span 4; min-height: 400px;">
-    <h2>💬 留言墙 (D1极速版)</h2>
-    
-    <div id="msg-list" style="height: 300px; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px;">
-        <div style="text-align:center; color:#888;">正在连接数据库...</div>
-    </div>
-
-    <div style="display: flex; gap: 10px;">
-        <input type="text" id="nick" placeholder="昵称" style="width: 80px; padding: 8px; border-radius: 5px; border: none;">
-        <input type="text" id="msg" placeholder="说点什么..." style="flex: 1; padding: 8px; border-radius: 5px; border: none;">
-        <button onclick="send()" id="btn" style="padding: 8px 15px; border-radius: 5px; border: none; background: var(--accent); color: white; cursor: pointer;">发送</button>
-    </div>
-
-    <script>
-      // 🔴 以前是 workers.dev (会被墙)
-// 🟢 现在改成你自己的域名 (稳如老狗)
-const API = "https://api.fanyouhao.top";
-
-        async function load() {
-            try {
-                const res = await fetch(API);
-                const data = await res.json();
-                document.getElementById('msg-list').innerHTML = data.map(m => 
-                    `<div style="margin-bottom:8px; border-bottom:1px dashed #333; padding-bottom:5px;">
-                        <strong style="color:var(--accent)">${m.nickname}</strong>: ${m.content}
-                    </div>`
-                ).join('');
-            } catch(e) {
-                document.getElementById('msg-list').innerHTML = "加载失败，请检查 Worker 地址";
-            }
-        }
-
-        async function send() {
-            const nick = document.getElementById('nick').value;
-            const msg = document.getElementById('msg').value;
-            if(!nick || !msg) return alert("都得填！");
+  <div class="card msg-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                <h2 style="margin:0; font-size: 1.2rem;">💬 极客留言墙</h2>
+                <button onclick="loadMessages()" class="icon-btn" title="刷新留言">
+                    <i class="ri-refresh-line"></i>
+                </button>
+            </div>
             
-            document.getElementById('btn').innerText = "...";
-            await fetch(API, {
-                method: 'POST',
-                body: JSON.stringify({ nickname: nick, content: msg })
-            });
-            document.getElementById('nick').value = '';
-            document.getElementById('msg').value = '';
-            document.getElementById('btn').innerText = "发送";
-            load();
-        }
-        
-        load(); // 页面加载就刷新
-    </script>
-</div>
+            <div id="msg-list" class="chat-container">
+                <div style="text-align:center; color:#888; margin-top: 50px;">
+                    <i class="ri-loader-4-line spin"></i> 正在连接量子网络...
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="nick-input" placeholder="昵称" class="glass-input" style="width: 25%;">
+                <input type="text" id="content-input" placeholder="留下你的足迹..." class="glass-input" style="flex: 1;">
+                <button onclick="submitMsg()" id="send-btn" class="send-btn">
+                    <i class="ri-send-plane-fill"></i>
+                </button>
+            </div>
+        </div>
+
+        <style>
+            /* 解决底部遮挡问题：给卡片加个下边距 */
+            .msg-card {
+                grid-column: span 4;
+                min-height: 450px;
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 100px; /* 🔴 关键：把底部顶起来，不让Dock遮挡 */
+            }
+
+            /* 聊天列表容器 */
+            .chat-container {
+                flex: 1;
+                overflow-y: auto;
+                padding: 10px;
+                background: rgba(0, 0, 0, 0.2); /*稍微深一点的背景*/
+                border-radius: 12px;
+                margin-bottom: 15px;
+                /* 隐藏滚动条但允许滚动 */
+                scrollbar-width: none; 
+            }
+            .chat-container::-webkit-scrollbar { display: none; }
+
+            /* 单条留言气泡 */
+            .chat-bubble {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 10px 14px;
+                margin-bottom: 10px;
+                animation: slideIn 0.3s ease;
+            }
+            .chat-header {
+                font-size: 0.85rem;
+                color: var(--accent);
+                font-weight: bold;
+                margin-bottom: 4px;
+                display: flex;
+                justify-content: space-between;
+            }
+            .chat-content {
+                font-size: 0.95rem;
+                color: #e2e8f0;
+                line-height: 1.5;
+                word-break: break-all;
+            }
+            .chat-time {
+                font-size: 0.7rem;
+                color: #666;
+                font-weight: normal;
+            }
+
+            /* 输入框美化 */
+            .input-area {
+                display: flex;
+                gap: 10px;
+            }
+            .glass-input {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 12px;
+                color: white;
+                font-family: inherit;
+                outline: none;
+                transition: 0.3s;
+            }
+            .glass-input:focus {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: var(--accent);
+                box-shadow: 0 0 10px var(--accent-glow);
+            }
+
+            /* 按钮美化 */
+            .icon-btn {
+                background: transparent; border: none; color: var(--text-sub);
+                font-size: 1.2rem; cursor: pointer; transition: 0.2s; padding: 5px;
+            }
+            .icon-btn:hover { color: var(--accent); transform: rotate(180deg); }
+            
+            .send-btn {
+                background: var(--accent);
+                border: none;
+                border-radius: 10px;
+                width: 50px;
+                color: white;
+                font-size: 1.2rem;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+            .send-btn:hover { background: #60a5fa; transform: scale(1.05); }
+            .send-btn:active { transform: scale(0.95); }
+
+            @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+            .spin { animation: spin 1s linear infinite; display: inline-block; }
+            @keyframes spin { 100% { transform: rotate(360deg); } }
+        </style>
+
+        <script>
+            // 🟢 保持你刚才配置好的域名！
+            const API = "https://api.fanyouhao.top"; 
+
+            // 格式化时间戳 (把 1700000 变成 "12:30")
+            function formatTime(ts) {
+                if(!ts) return '';
+                const date = new Date(ts);
+                return date.getHours().toString().padStart(2,'0') + ':' + 
+                       date.getMinutes().toString().padStart(2,'0');
+            }
+
+            async function loadMessages() {
+                const listDiv = document.getElementById('msg-list');
+                const btnIcon = document.querySelector('.icon-btn i');
+                
+                // 让刷新图标转起来
+                btnIcon.classList.add('spin');
+
+                try {
+                    const res = await fetch(API);
+                    const data = await res.json();
+                    
+                    if (data.length === 0) {
+                        listDiv.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">还没有人说话，快来抢沙发！</div>';
+                    } else {
+                        listDiv.innerHTML = data.map(msg => {
+                            const safeNick = msg.nickname.replace(/</g, "&lt;");
+                            const safeContent = msg.content.replace(/</g, "&lt;");
+                            const timeStr = formatTime(msg.created_at); // 解析时间
+                            
+                            return `
+                                <div class="chat-bubble">
+                                    <div class="chat-header">
+                                        <span>${safeNick}</span>
+                                        <span class="chat-time">${timeStr}</span>
+                                    </div>
+                                    <div class="chat-content">${safeContent}</div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                } catch (e) {
+                    listDiv.innerHTML = '<div style="text-align:center; color:#ef4444;">连接失败，请检查网络</div>';
+                } finally {
+                    // 停止旋转
+                    setTimeout(() => btnIcon.classList.remove('spin'), 500);
+                }
+            }
+
+            async function submitMsg() {
+                const nickInput = document.getElementById('nick-input');
+                const contentInput = document.getElementById('content-input');
+                const btn = document.getElementById('send-btn');
+
+                const nickname = nickInput.value.trim();
+                const content = contentInput.value.trim();
+
+                if (!nickname || !content) {
+                    // 简单的震动提醒
+                    contentInput.style.border = "1px solid #ef4444";
+                    setTimeout(() => contentInput.style.border = "", 2000);
+                    return;
+                }
+
+                const originalIcon = btn.innerHTML;
+                btn.innerHTML = '<i class="ri-loader-4-line spin"></i>'; // 变成加载圈
+                btn.disabled = true;
+
+                try {
+                    await fetch(API, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nickname, content })
+                    });
+                    
+                    contentInput.value = ''; // 只清空内容，保留昵称方便继续发
+                    await loadMessages();
+                } catch (e) {
+                    alert("发送失败");
+                } finally {
+                    btn.innerHTML = originalIcon;
+                    btn.disabled = false;
+                }
+            }
+
+            // 页面加载时自动拉取
+            loadMessages();
+        </script>
 
     <div class="dock-container">
         <a href="#" class="dock-icon" data-title="Home"><i class="ri-home-4-line"></i></a>
