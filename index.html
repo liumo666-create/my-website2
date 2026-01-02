@@ -251,6 +251,87 @@
                 <span style="font-size:0.7rem; border:1px solid #666; padding:2px 6px; border-radius:4px;">HTML</span>
             </a>
         </div>
+        <div class="card weather-card" style="position: relative; overflow: hidden; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--accent); opacity: 0.1; filter: blur(40px); border-radius: 50%;"></div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 0.8rem; color: #94a3b8; font-weight: bold; letter-spacing: 1px;">
+                        <i class="ri-map-pin-line"></i> WUHAN
+                    </div>
+                    <div id="weather-desc" style="font-size: 0.9rem; color: #fff; margin-top: 2px;">加载中...</div>
+                </div>
+                <i id="weather-icon" class="ri-loader-4-line spin" style="font-size: 2.5rem; color: var(--accent);"></i>
+            </div>
+
+            <div style="display: flex; align-items: baseline; gap: 5px;">
+                <span id="temp-val" style="font-size: 3.5rem; font-weight: 800; background: linear-gradient(to bottom, #fff, #94a3b8); -webkit-background-clip: text; color: transparent;">--</span>
+                <span style="font-size: 1.5rem; color: #94a3b8;">°C</span>
+            </div>
+
+            <div style="display: flex; gap: 15px; font-size: 0.8rem; color: rgba(255,255,255,0.6); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <span><i class="ri-windy-line"></i> <span id="wind-val">--</span> km/h</span>
+                <span><i class="ri-drop-line"></i> <span id="humi-val">--</span>%</span>
+            </div>
+        </div>
+
+        <script>
+            async function getWuhanWeather() {
+                // 武汉坐标: 30.58, 114.27
+                const url = "https://api.open-meteo.com/v1/forecast?latitude=30.58&longitude=114.27&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Asia%2FShanghai";
+
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const current = data.current;
+
+                    // 1. 更新数值
+                    document.getElementById('temp-val').innerText = Math.round(current.temperature_2m);
+                    document.getElementById('wind-val').innerText = current.wind_speed_10m;
+                    document.getElementById('humi-val').innerText = current.relative_humidity_2m;
+
+                    // 2. 解析天气代码 (WMO Code) -> 换图标和文字
+                    const code = current.weather_code;
+                    const iconEl = document.getElementById('weather-icon');
+                    const descEl = document.getElementById('weather-desc');
+                    
+                    // 移除加载动画
+                    iconEl.classList.remove('spin');
+                    iconEl.classList.remove('ri-loader-4-line');
+
+                    // 简单的代码映射
+                    if (code === 0) {
+                        iconEl.classList.add('ri-sun-line');
+                        descEl.innerText = "Clear Sky 晴";
+                    } else if (code >= 1 && code <= 3) {
+                        iconEl.classList.add('ri-cloudy-line');
+                        descEl.innerText = "Cloudy 多云";
+                    } else if (code >= 45 && code <= 48) {
+                        iconEl.classList.add('ri-foggy-line');
+                        descEl.innerText = "Fog 雾";
+                    } else if (code >= 51 && code <= 67) {
+                        iconEl.classList.add('ri-drizzle-line');
+                        descEl.innerText = "Rain 雨";
+                    } else if (code >= 71 && code <= 77) {
+                        iconEl.classList.add('ri-snowy-line');
+                        descEl.innerText = "Snow 雪";
+                    } else if (code >= 95) {
+                        iconEl.classList.add('ri-thunderstorms-line');
+                        descEl.innerText = "Storm 雷暴";
+                    } else {
+                        iconEl.classList.add('ri-sun-cloudy-line');
+                        descEl.innerText = "Good Day";
+                    }
+
+                } catch (e) {
+                    console.error("天气加载失败", e);
+                    document.getElementById('weather-desc').innerText = "离线";
+                }
+            }
+
+            // 页面加载后执行
+            getWuhanWeather();
+        </script>
         <a href="momo.html" class="card momo-card" data-tilt style="text-decoration:none; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end;">
             <img src="photos/1.jpg" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; opacity:0.6; transition:0.5s;">
             
