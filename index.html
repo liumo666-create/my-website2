@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fanyouhao | 数字空间</title>
     <style>
-        /* --- 1. 定义变量与动态背景 --- */
+        /* --- 1. 核心变量 --- */
         :root {
             --glass-bg: rgba(255, 255, 255, 0.65);
             --glass-border: rgba(255, 255, 255, 0.5);
@@ -15,9 +15,8 @@
             --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         }
 
-        /* 暗黑模式 */
         [data-theme="dark"] {
-            --glass-bg: rgba(20, 20, 25, 0.75);
+            --glass-bg: rgba(20, 20, 25, 0.85); /* 暗色模式下稍微不透明一点 */
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #f5f5f7;
             --text-sub: #a1a1aa;
@@ -25,115 +24,138 @@
             --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
 
+        /* --- 2. 全局样式 --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: var(--text-main);
             margin: 0;
-            padding: 2rem;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
             /* 动态渐变背景 */
             background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
+            
+            /* 布局核心修复：电脑端居中，手机端自然流动 */
+            display: flex;
+            justify-content: center;
+            align-items: center; 
+            padding: 2rem;
+            box-sizing: border-box;
         }
 
-        /* 背景动画关键帧 */
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
-        /* --- 2. 布局与卡片样式 --- */
+        /* --- 3. 容器与卡片 --- */
         .container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: auto auto auto;
+            grid-template-columns: repeat(4, 1fr); /* 电脑端 4 列 */
             gap: 1.2rem;
             max-width: 1000px;
             width: 100%;
-            z-index: 1; /* 保证在背景之上 */
         }
 
-        @media (max-width: 768px) {
-            .container { grid-template-columns: 1fr; }
-        }
-
-        /* 毛玻璃卡片核心代码 */
         .card {
             background: var(--glass-bg);
-            backdrop-filter: blur(12px); /* 模糊效果 */
+            backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-radius: 1.5rem;
             padding: 1.5rem;
             border: 1px solid var(--glass-border);
             box-shadow: var(--shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.2s;
         }
+        .card:hover { transform: translateY(-3px); }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
-        }
-
-        /* --- 3. 内部元素样式 --- */
-        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-        h2 { font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
-        p { font-size: 0.95rem; color: var(--text-sub); line-height: 1.6; }
-        
-        .tag { background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; color: var(--text-sub); border: 1px solid var(--glass-border); }
-        [data-theme="dark"] .tag { background: rgba(255,255,255,0.1); }
-
-        /* 链接列表 */
-        .link-list a {
-            display: block;
-            text-decoration: none;
-            color: var(--text-main);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: rgba(255,255,255,0.3);
-            border: 1px solid transparent;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        [data-theme="dark"] .link-list a { background: rgba(0,0,0,0.2); }
-        .link-list a:hover {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-        .link-list a:hover .tag { color: white; background: rgba(255,255,255,0.2); }
-
-        /* 备忘录输入框 */
-        textarea {
-            width: 100%;
-            height: 100px;
-            background: rgba(0,0,0,0.03);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
-            padding: 10px;
-            resize: none;
-            color: var(--text-main);
-            font-family: inherit;
-        }
-        textarea:focus { outline: 2px solid var(--accent); }
-
-        /* 倒计时数字 */
-        .countdown-num { font-size: 2.5rem; font-weight: 800; color: var(--accent); }
-        .countdown-label { font-size: 0.9rem; color: var(--text-sub); }
-
-        /* 网格位置控制 */
-        .profile { grid-column: span 2; grid-row: span 1; }
-        .countdown { grid-column: span 1; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        /* --- 4. 电脑端布局控制 --- */
+        .profile { grid-column: span 2; }
+        .countdown { grid-column: span 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .toggle { grid-column: span 1; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; }
-        .memo { grid-column: span 2; }
         .resources { grid-column: span 2; grid-row: span 2; }
+        .memo { grid-column: span 2; }
+        .footer { grid-column: span 4; text-align: center; font-size: 0.8rem; color: var(--text-sub); margin-top: 1rem; }
+
+        /* --- 5. 内部元素细节 --- */
+        h1 { font-size: 1.5rem; margin: 0 0 0.5rem 0; font-weight: 700; }
+        h2 { font-size: 1.1rem; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 8px; }
+        p { margin: 0; line-height: 1.6; font-size: 0.95rem; color: var(--text-sub); }
+        
+        .countdown-num { font-size: 2.2rem; font-weight: 800; color: var(--accent); line-height: 1.1; }
+        .countdown-label { font-size: 0.85rem; color: var(--text-sub); margin-top: 5px; }
+
+        textarea {
+            width: 100%; height: 100px;
+            background: rgba(0,0,0,0.05); border: none; border-radius: 10px;
+            padding: 12px; resize: none; color: var(--text-main); font-family: inherit;
+            box-sizing: border-box; /* 防止撑破边框 */
+        }
+        textarea:focus { outline: 2px solid var(--accent); background: rgba(0,0,0,0.02); }
+
+        /* 链接样式 */
+        .link-item {
+            display: flex; justify-content: space-between; align-items: center;
+            text-decoration: none; color: var(--text-main);
+            padding: 12px; margin-bottom: 8px; border-radius: 10px;
+            background: rgba(255,255,255,0.2); border: 1px solid transparent;
+        }
+        [data-theme="dark"] .link-item { background: rgba(0,0,0,0.2); }
+        .link-item:hover { background: var(--accent); color: white; }
+        .link-item .tag { font-size: 0.75rem; background: rgba(255,255,255,0.5); padding: 2px 8px; border-radius: 6px; color: #333; }
+
+        /* =========================================
+           📱 手机端专属优化 (重点看这里)
+           ========================================= */
+        @media (max-width: 768px) {
+            body {
+                display: block; /* 取消强制居中，允许自然滚动 */
+                padding: 1rem; /* 减小边距，给内容更多空间 */
+                height: auto;
+            }
+
+            .container {
+                display: flex;
+                flex-direction: column; /* 强制变为单列垂直排列 */
+                gap: 1rem;
+            }
+
+            /* 强制所有卡片占满宽度 */
+            .profile, .countdown, .toggle, .resources, .memo, .footer {
+                grid-column: auto !important;
+                grid-row: auto !important;
+                width: 100%; 
+                box-sizing: border-box; /* 防止padding撑大宽度 */
+            }
+
+            /* 调整手机上的字体大小 */
+            h1 { font-size: 1.3rem; }
+            .countdown { flex-direction: row; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; }
+            .countdown-num { font-size: 1.8rem; }
+            .countdown-label { margin-top: 0; }
+            
+            /* 按钮和倒计时并排显示优化 */
+            .toggle { display: none; } /* 手机上为了节省空间，我把单独的切换按钮隐藏了 */
+        }
+        
+        /* 手机上把切换按钮做到右上角悬浮，更节省空间 */
+        .mobile-toggle {
+            display: none;
+            position: fixed; top: 20px; right: 20px;
+            background: var(--glass-bg); padding: 10px; border-radius: 50%;
+            box-shadow: var(--shadow); z-index: 100; cursor: pointer;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        }
+        @media (max-width: 768px) {
+            .mobile-toggle { display: flex; } /* 只在手机显示 */
+        }
 
     </style>
 </head>
 <body>
+
+    <div class="mobile-toggle" onclick="toggleTheme()">🌗</div>
 
     <div class="container">
         <div class="card profile">
@@ -142,89 +164,73 @@
         </div>
 
         <div class="card countdown">
-            <div class="countdown-label">距离期末考试还有</div>
+            <div class="countdown-label">距离期末考试</div>
             <div id="days-left" class="countdown-num">0</div>
-            <div class="countdown-label">天</div>
-        </div>
+            <div class="countdown-label" style="display:none">天</div> </div>
 
-        <div class="card toggle" onclick="toggleTheme()" title="切换主题">
+        <div class="card toggle" onclick="toggleTheme()">
             🌗
         </div>
 
         <div class="card resources">
             <h2>📚 资料补给站</h2>
-            <div class="link-list">
-                <a href="https://wwaof.lanzoum.com/iDxHW3f2zuij" target="_blank">
-                    <span>数字视频技术复习</span>
-                    <span class="tag">DOCX</span>
-                </a>
-                <a href="#" target="_blank">
-                    <span>通信原理笔记 (待传)</span>
-                    <span class="tag">PDF</span>
-                </a>
-                <a href="#" target="_blank">
-                    <span>嵌入式系统总结 (待传)</span>
-                    <span class="tag">PDF</span>
-                </a>
-                <a href="my-projects/game.html">
-                    <span>🎮 摸鱼小游戏</span>
-                    <span class="tag">HTML</span>
-                </a>
-            </div>
+            <a href="https://wwaof.lanzoum.com/iDxHW3f2zuij" target="_blank" class="link-item">
+                <span>数字视频技术复习</span>
+                <span class="tag">DOCX</span>
+            </a>
+            <a href="#" class="link-item">
+                <span>通信原理笔记 (待传)</span>
+                <span class="tag">PDF</span>
+            </a>
+            <a href="https://www.douyin.com/user/MS4wLjABAAAAKD7gXoehr1Yq_yVSHfiRBmtKUISmPRnlXwGkDqRYWhM?from_tab_name=main" class="link-item">
+                <span>🎮 抖音</span>
+                <span class="tag">HTML</span>
+            </a>
         </div>
 
         <div class="card memo">
-            <h2>📝 随手记 (自动保存)</h2>
+            <h2>📝 随手记</h2>
             <textarea id="memo-pad" placeholder="在此输入今天的复习计划..."></textarea>
         </div>
 
-        <div class="card" style="grid-column: span 4; text-align: center; font-size: 0.9rem; color: var(--text-sub);">
-            Fanyouhao.top © 2025 | Create with Cloudflare & GitHub
+        <div class="footer">
+            Fanyouhao.top © 2025
         </div>
     </div>
 
     <script>
-        // --- 功能1: 考试倒计时 (目标: 2026年1月7日) ---
+        // 倒计时逻辑
         function updateCountdown() {
-            // 注意：月份是从0开始的，所以1月是0
-            const examDate = new Date(2026, 0, 7); 
+            const examDate = new Date(2026, 0, 7); // 1月7日
             const now = new Date();
             const diff = examDate - now;
-            
-            // 计算剩余天数，向上取整
             const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-            
-            // 如果考试过了，显示其他内容
-            const displayDays = days > 0 ? days : "Fighting";
-            document.getElementById('days-left').innerText = displayDays;
+            document.getElementById('days-left').innerText = days > 0 ? days + "天" : "Fighting!";
         }
         updateCountdown();
 
-        // --- 功能2: 动态问候 ---
+        // 问候语逻辑
         const hour = new Date().getHours();
         let greet = "你好";
-        if (hour < 6) greet = "还没睡？注意身体";
-        else if (hour < 12) greet = "早上好，新的一天";
-        else if (hour < 18) greet = "下午好，记得喝水";
-        else greet = "晚上好，享受宁静";
+        if (hour < 6) greet = "还没睡？";
+        else if (hour < 12) greet = "早上好";
+        else if (hour < 18) greet = "下午好";
+        else greet = "晚上好";
         document.getElementById('greeting').innerText = greet + "，Fanyouhao";
 
-        // --- 功能3: 明暗模式切换 ---
+        // 主题切换逻辑
         function toggleTheme() {
             const html = document.documentElement;
             const current = html.getAttribute('data-theme');
             html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
         }
-        // 自动跟随系统
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.setAttribute('data-theme', 'dark');
         }
 
-        // --- 功能4: 备忘录自动保存 (LocalStorage) ---
+        // 备忘录逻辑
         const memoPad = document.getElementById('memo-pad');
-        // 页面加载时，读取保存的内容
         memoPad.value = localStorage.getItem('my-memo') || '';
-        // 每次输入时，保存内容
         memoPad.addEventListener('input', () => {
             localStorage.setItem('my-memo', memoPad.value);
         });
