@@ -600,13 +600,9 @@ startClock();
             /* 禁止背景滚动，防止用户习惯性往下滑 */
             body.birthday-active { overflow: hidden; }
         </style>
-<script>
-            
-            // ... 下面是你原本的代码 ...
-            window.addEventListener('load', function() {
-                // 锁住滚动条
-                document.body.classList.add('birthday-active');
-                // ... (后面不用动) ...
+
+        <script>
+            // 页面加载时自动运行
             window.addEventListener('load', function() {
                 // 1. 锁住滚动条
                 document.body.classList.add('birthday-active');
