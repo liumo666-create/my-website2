@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数字视频技术 - 期末全考点特训（考前冲刺版）</title>
+    <title>数字视频技术 - 期末全考点特训（25题完整版）</title>
     <style>
-        :root { --primary: #3498db; --accent: #2c3e50; --bg: #f8f9fa; --card: #ffffff; }
+        :root { --primary: #3498db; --accent: #2c3e50; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; line-height: 1.6; }
-        .container { max-width: 900px; margin: 0 auto; background: var(--card); padding: 30px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+        .container { max-width: 900px; margin: 0 auto; background: var(--card); padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         h1 { text-align: center; color: var(--accent); margin-bottom: 5px; font-size: 1.8rem; }
         .subtitle { text-align: center; color: #7f8c8d; font-size: 0.95rem; margin-bottom: 30px; }
         
@@ -17,7 +17,7 @@
         .score-val { color: var(--primary); font-size: 1.2em; }
         
         /* 题目样式 */
-        .question-card { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px dashed #e0e0e0; animation: fadeIn 0.5s ease; }
+        .question-card { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px dashed #e0e0e0; }
         .q-tag { display: inline-block; background: var(--accent); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 10px; vertical-align: middle; }
         .q-content { font-size: 1.1rem; }
         
@@ -36,6 +36,9 @@
         
         .ans-feedback { display: none; margin-top: 10px; padding: 10px; background: #fdeaea; color: #c0392b; border-radius: 6px; font-size: 0.95rem; border-left: 3px solid #e74c3c; }
         
+        /* 错误提示框 */
+        #error-monitor { display: none; background: #fee; border: 1px solid #fcc; color: #c00; padding: 15px; margin-bottom: 20px; border-radius: 5px; font-family: monospace; }
+
         /* 按钮 */
         .action-area { display: flex; gap: 20px; justify-content: center; margin-top: 40px; }
         button { padding: 12px 35px; border: none; border-radius: 50px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -50,22 +53,22 @@
             .action-area { flex-direction: column; }
             button { width: 100%; }
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>数字视频技术 · 期末冲刺</h1>
-    <div class="subtitle">已更新：DVB后缀字母专项特训 · 智能防撞车</div>
+    <h1>《数字视频技术》期末冲刺（25题版）</h1>
+    <div class="subtitle">已补全遗漏考点 · DVB专项加强 · 智能防撞车</div>
     
+    <div id="error-monitor"></div>
+
     <div class="dashboard">
         <div class="stat-item">题目数量: <span id="total-q">0</span></div>
         <div class="stat-item">当前得分: <span id="score-val" class="score-val">0</span></div>
     </div>
 
     <div id="quiz-area"></div>
-    <div id="error-box" style="color:red; text-align:center; display:none; padding:20px;">题目加载异常，请检查代码完整性。</div>
 
     <div class="action-area">
         <button class="btn-submit" onclick="submitPaper()">提交判分</button>
@@ -74,11 +77,17 @@
 </div>
 
 <script>
-    /* 题库设计：
-       重点更新了 id: 9 (DVB系统)，增加了对 S, C, T 字母的单独考察
-    */
+    // 全局错误监听
+    window.onerror = function(message, source, lineno, colno, error) {
+        var monitor = document.getElementById('error-monitor');
+        monitor.style.display = 'block';
+        monitor.innerHTML = "<strong>程序运行出错:</strong><br>位置: 第 " + lineno + " 行<br>错误信息: " + message;
+        return true;
+    };
+
+    /* 题库数据：已拆分考点4和考点10，补全至25题 */
     const fullQuestionBank = [
-        [cite_start]// 1. 变换编码模块 [cite: 3]
+        // 1. 变换编码
         {
             id: 1,
             vars: [
@@ -87,7 +96,7 @@
                 { q: "变换编码由变换、量化和 {input} 三部分组成。", a: ["熵编码"] }
             ]
         },
-        [cite_start]// 2. 预测器误差公式 [cite: 4]
+        // 2. 预测器误差
         {
             id: 2,
             vars: [
@@ -96,7 +105,7 @@
                 { q: "公式 eN = xN - x^N 中，xN 代表 {input} 。", a: ["实际值", "原始值", "像素值"] }
             ]
         },
-        [cite_start]// 3. 视觉惰性 [cite: 7]
+        // 3. 视觉惰性
         {
             id: 3,
             vars: [
@@ -105,23 +114,23 @@
                 { q: "视觉惰性包含亮度感觉滞后和 {input} 两个特性。", a: ["视觉暂留"] }
             ]
         },
-        [cite_start]// 4. 有线数字信道特点 (含 10. 信噪比) [cite: 10, 28]
+        // 4. 有线数字信道特点 (侧重于三个特点的列举)
         {
             id: 4,
             vars: [
                 { q: "有线数字信道的主要特点：可用频带宽、{input} 高、多径干扰小。", a: ["信噪比", "SNR"] },
-                { q: "有线数字电视信道的信噪比通常较 {input} 。", a: ["高"] },
-                { q: "有线数字信道除了频带宽和信噪比高外，还具有 {input} 小的特点。", a: ["多径干扰"] }
+                { q: "有线数字信道除了频带宽和信噪比高外，还具有 {input} 小的特点。", a: ["多径干扰"] },
+                { q: "有线数字信道的三个特点是：频带宽、信噪比高、{input} 。", a: ["多径干扰小", "多径干扰"] }
             ]
         },
-        [cite_start]// 5. 带宽有效性 [cite: 13]
+        // 5. 带宽有效性
         {
             id: 5,
             vars: [
                 { q: "带宽有效性调制效率 ηw 的取值范围是 {input} 。", a: ["ηw>1", ">1", "大于1"] }
             ]
         },
-        [cite_start]// 6. 随机差错 (AWGN) [cite: 16]
+        // 6. 随机差错
         {
             id: 6,
             vars: [
@@ -129,7 +138,7 @@
                 { q: "加性高斯白噪声 (AWGN) 通常会导致 {input} 差错。", a: ["随机"] }
             ]
         },
-        [cite_start]// 7. 三原色 [cite: 19]
+        // 7. 三原色
         {
             id: 7,
             vars: [
@@ -137,7 +146,7 @@
                 { q: "RGB 颜色模型中，G 代表 {input} 色。", a: ["绿", "Green"] }
             ]
         },
-        [cite_start]// 8. 伪随机序列 (m序列) [cite: 22]
+        // 8. m序列
         {
             id: 8,
             vars: [
@@ -146,21 +155,24 @@
                 { q: "m 序列通常由多级线性反馈 {input} 产生。", a: ["移位寄存器"] }
             ]
         },
-        [cite_start]// 9. DVB 系统 (已加强后缀字母考查) [cite: 25]
+        // 9. DVB系统
         {
             id: 9,
             vars: [
-                // 考分类
-                { q: "DVB-C (DVB-C2) 标准适用于 {input} 广播传输系统。", a: ["有线", "有线电视"] },
-                { q: "DVB-S (DVB-S2) 标准适用于 {input} 广播传输系统。", a: ["卫星"] },
-                { q: "DVB-T (DVB-T2) 标准适用于 {input} 广播传输系统。", a: ["地面", "地面微波"] },
-                // 考后缀字母（重要考点）
-                { q: "DVB 数字广播传输系统中，适用于“卫星”传输的是 DVB-{input} 。(填字母)", a: ["S", "S2", "S/S2"] },
-                { q: "DVB 数字广播传输系统中，适用于“有线”传输的是 DVB-{input} 。(填字母)", a: ["C", "C2", "C/C2"] },
-                { q: "DVB 数字广播传输系统中，适用于“地面”传输的是 DVB-{input} 。(填字母)", a: ["T", "T2", "T/T2"] }
+                { q: "DVB 数字广播传输系统中，适用于“卫星”传输的是 DVB-{input} 。(填字母)", a: ["S", "S2"] },
+                { q: "DVB 数字广播传输系统中，适用于“有线”传输的是 DVB-{input} 。(填字母)", a: ["C", "C2"] },
+                { q: "DVB 数字广播传输系统中，适用于“地面”传输的是 DVB-{input} 。(填字母)", a: ["T", "T2"] }
             ]
         },
-        [cite_start]// 11. 突发差错 [cite: 31]
+        // 10. 有线信道信噪比 (侧重于 高/低 的判断) - 【这是补回来的考点】
+        {
+            id: 10,
+            vars: [
+                { q: "有线数字电视信道的信噪比通常较 {input} 。(填高或低)", a: ["高"] },
+                { q: "相比于无线信道，有线信道的信噪比特征是较 {input} 。", a: ["高"] }
+            ]
+        },
+        // 11. 突发差错
         {
             id: 11,
             vars: [
@@ -169,7 +181,7 @@
                 { q: "雷电、强脉冲等干扰通常会导致 {input} 差错。", a: ["突发"] }
             ]
         },
-        [cite_start]// 12. DCT 系数分布 [cite: 34]
+        // 12. DCT分布
         {
             id: 12,
             vars: [
@@ -178,7 +190,7 @@
                 { q: "DCT 变换中，代表图像边缘和细节的系数集中在 {input} 。", a: ["右下角", "高频"] }
             ]
         },
-        [cite_start]// 13. 摄取与重现 [cite: 37]
+        // 13. 光电转换
         {
             id: 13,
             vars: [
@@ -186,7 +198,7 @@
                 { q: "图像的电光转换（重现）通常由 {input} 完成。", a: ["显像管", "显示器"] }
             ]
         },
-        [cite_start]// 14. 比特率算法 [cite: 40]
+        // 14. 比特率算法
         {
             id: 14,
             vars: [
@@ -194,7 +206,7 @@
                 { q: "采样频率与量化比特数的乘积等于 {input} 。", a: ["比特率", "传输比特率"] }
             ]
         },
-        [cite_start]// 15. 镜像变换 [cite: 43]
+        // 15. 镜像变换
         {
             id: 15,
             vars: [
@@ -202,7 +214,7 @@
                 { q: "将图像左右翻转的变换称为 {input} 。", a: ["水平镜像"] }
             ]
         },
-        [cite_start]// 16. 可见光谱 [cite: 45]
+        // 16. 可见光
         {
             id: 16,
             vars: [
@@ -210,7 +222,7 @@
                 { q: "波长在 380~780nm 之间的电磁波属于 {input} 。", a: ["可见光"] }
             ]
         },
-        [cite_start]// 17. DPCM 误差 [cite: 48]
+        // 17. DPCM误差
         {
             id: 17,
             vars: [
@@ -218,7 +230,7 @@
                 { q: "预测编码系统的失真主要来源于 {input} 环节。", a: ["量化"] }
             ]
         },
-        [cite_start]// 18. 扰码 [cite: 51]
+        // 18. 扰码
         {
             id: 18,
             vars: [
@@ -226,7 +238,7 @@
                 { q: "加入伪随机序列对信号进行处理以利于时钟恢复的过程称为 {input} 。", a: ["扰码"] }
             ]
         },
-        [cite_start]// 19. 量化级别与比特数 [cite: 54]
+        // 19. 量化级别
         {
             id: 19,
             vars: [
@@ -235,7 +247,7 @@
                 { q: "从白色到黑色经过 256 次渐变，对应 {input} bit 量化。", a: ["8"] }
             ]
         },
-        [cite_start]// 20. 模拟调制 [cite: 57]
+        // 20. 模拟调制
         {
             id: 20,
             vars: [
@@ -243,7 +255,7 @@
                 { q: "经过调制后的基带信号称为 {input} 信号。", a: ["通带", "频带"] }
             ]
         },
-        [cite_start]// 21. WWW 协议 [cite: 60]
+        // 21. HTTP
         {
             id: 21,
             vars: [
@@ -251,7 +263,7 @@
                 { q: "HTTP 的中文全称是 {input} 。", a: ["超文本传输协议"] }
             ]
         },
-        [cite_start]// 22. 图像分辨率 [cite: 63]
+        // 22. 分辨率
         {
             id: 22,
             vars: [
@@ -259,7 +271,7 @@
                 { q: "“水平像素数 × 垂直像素数”用于表征图像的 {input} 。", a: ["分辨率", "图像分辨率"] }
             ]
         },
-        [cite_start]// 23. 配色方程式 [cite: 66]
+        // 23. 配色方程式
         {
             id: 23,
             vars: [
@@ -268,7 +280,7 @@
                 { q: "配色方程式中，[R]、[G]、[B] 代表 {input} 。", a: ["基色", "三原色"] }
             ]
         },
-        [cite_start]// 24. 交织技术 [cite: 69]
+        // 24. 交织
         {
             id: 24,
             vars: [
@@ -276,7 +288,7 @@
                 { q: "为了对抗突发差错，数字通信中常采用 {input} 技术。", a: ["交织"] }
             ]
         },
-        [cite_start]// 25. 谐波衰减 [cite: 72]
+        // 25. 谐波
         {
             id: 25,
             vars: [
@@ -288,17 +300,11 @@
 
     let currentPaper = [];
 
-    // 初始化运行
+    // 初始化
     window.onload = function() {
-        try {
-            generatePaper();
-        } catch (e) {
-            document.getElementById('error-box').style.display = 'block';
-            console.error(e);
-        }
+        generatePaper();
     };
 
-    // 生成试卷：每个知识点抽1题
     function generatePaper() {
         const area = document.getElementById('quiz-area');
         area.innerHTML = '';
@@ -310,7 +316,7 @@
             const r = Math.floor(Math.random() * topic.vars.length);
             return {
                 id: topic.id,
-                ...JSON.parse(JSON.stringify(topic.vars[r])) // 深拷贝
+                ...JSON.parse(JSON.stringify(topic.vars[r])) 
             };
         });
 
@@ -336,10 +342,7 @@
                 }
             });
             html += `</div>`;
-            
-            // 错题反馈区
             html += `<div class="ans-feedback" id="fb-${index}"></div>`;
-            
             card.innerHTML = html;
             area.appendChild(card);
         });
@@ -347,7 +350,6 @@
         window.scrollTo(0,0);
     }
 
-    // 提交判分
     function submitPaper() {
         let correctCount = 0;
         
@@ -360,25 +362,19 @@
             inputs.forEach((input, bIdx) => {
                 const val = input.value.trim().replace(/\s+/g, '').toLowerCase().replace('^', '');
                 
-                // 获取标准答案
                 let correctOpts = [];
                 let displayStr = "";
                 
                 if (inputs.length > 1) {
-                    // 多空：假设数据源严格对应
-                    // item.a[bIdx] 可能是字符串，也可能是备选数组
-                    // 兼容数据源格式，如果item.a是字符串数组，取对应项
-                    // 实际上我的数据源中，多空题的a是 ["红","绿"] 这种
+                    // 假设数据源严格对应
                     let std = item.a[bIdx];
                     correctOpts = [std];
                     displayStr = std;
                 } else {
-                    // 单空：整个 item.a 都是备选
                     correctOpts = item.a;
-                    displayStr = item.a[0]; // 默认展示第一个
+                    displayStr = item.a[0]; 
                 }
 
-                // 比对
                 let match = false;
                 for (let opt of correctOpts) {
                     let cleanOpt = opt.toLowerCase().replace(/\s+/g, '').replace('^', '');
@@ -394,8 +390,6 @@
                     isItemCorrect = false;
                 }
                 
-                // 收集答案用于展示
-                // 如果是多选一，展示所有备选太长，展示由 '/' 分隔
                 if(inputs.length === 1) stdAnswers.push(item.a.join(" / "));
                 else stdAnswers.push(displayStr);
             });
@@ -409,7 +403,6 @@
             }
         });
 
-        // 计分
         let score = Math.round((correctCount / currentPaper.length) * 100);
         let sEl = document.getElementById('score-val');
         sEl.innerText = score;
@@ -418,13 +411,11 @@
         else if(score < 90) sEl.style.color = '#f39c12';
         else sEl.style.color = '#2ecc71';
 
-        // 自动跳错题
         let firstErr = document.querySelector('.incorrect');
         if (firstErr) firstErr.scrollIntoView({behavior: "smooth", block: "center"});
-        else alert("太棒了！全对！");
+        else alert("完美！全对！");
     }
 
-    // 洗牌算法
     function shuffleArray(array) {
         let arr = JSON.parse(JSON.stringify(array));
         for (let i = arr.length - 1; i > 0; i--) {
