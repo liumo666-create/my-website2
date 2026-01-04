@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通信原理期末突击：融合特训版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; background-color: #f8fafc; user-select: none; }
+        
+        .main-container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        
+        /* 顶部导航 */
+        .nav-header { background: #1e293b; color: white; padding: 15px 20px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .mode-btn { padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; opacity: 0.7; transition: 0.2s; background: rgba(255,255,255,0.1); margin-left: 10px;}
+        .mode-btn.active { background: #3b82f6; color: white; opacity: 1; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+
+        .content-board { background: white; min-height: 600px; border-radius: 0 0 12px 12px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;}
+
+        /* 码型切换按钮 */
+        .type-btn { 
+            padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 4px; 
+            font-size: 13px; cursor: pointer; background: #f1f5f9; color: #64748b; margin-right: 6px; margin-bottom: 6px; display: inline-block; transition: 0.2s;
+        }
+        .type-btn:hover { background: #e2e8f0; }
+        .type-btn.active { background: #eff6ff; border-color: #3b82f6; color: #2563eb; font-weight: bold; }
+
+        /* 口诀区 (恢复旧版样式) */
+        .rule-box { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #3b82f6; padding: 20px; margin-bottom: 20px; border-radius: 4px; }
+        .rule-title { font-size: 18px; font-weight: bold; color: #1e3a8a; margin-bottom: 10px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; }
+        .rule-item { margin-bottom: 8px; font-size: 14px; color: #334155; display: flex; align-items: flex-start; }
+        .rule-label { font-weight: bold; width: 80px; flex-shrink: 0; color: #475569; }
+        .rule-content { flex-grow: 1; }
+        
+        /* === 演示模式：Canvas 波形图样式 === */
+        .canvas-wrapper { overflow-x: auto; padding-bottom: 10px; border: 2px solid #3b82f6; border-radius: 8px; background: #fff; margin-bottom: 20px; position: relative; }
+        canvas { display: block; background: #ffffff; }
+
+        /* === 刷题模式：方块网格样式 === */
+        .grid-container {
+            display: inline-grid;
+            /* grid-template-columns 由JS生成 */
+            grid-template-rows: repeat(3, 40px); /* +1, 0, -1 */
+            gap: 2px;
+            background-color: #94a3b8; /* 网格线深色 */
+            border: 2px solid #475569;
+            padding: 2px;
+            margin-bottom: 10px;
+        }
+
+        .grid-cell {
+            background-color: white;
+            cursor: pointer;
+            transition: background-color 0.05s;
+        }
+        .grid-cell:hover { background-color: #f1f5f9; }
+
+        /* 激活状态 (填色) */
+        .grid-cell.active-pos { background-color: #3b82f6 !important; } /* +1 蓝 */
+        .grid-cell.active-zero { background-color: #94a3b8 !important; } /* 0 灰 */
+        .grid-cell.active-neg { background-color: #ef4444 !important; } /* -1 红 */
+
+        /* 结果反馈样式 */
+        .grid-cell.correct-outline { box-shadow: inset 0 0 0 3px #16a34a; z-index: 10; } /* 绿框 */
+        .grid-cell.wrong-choice { 
+            background-image: linear-gradient(45deg, #fee2e2 25%, transparent 25%, transparent 50%, #fee2e2 50%, #fee2e2 75%, transparent 75%, transparent);
+            background-size: 10px 10px; 
+        }
+
+        /* 标签列 */
+        .row-labels {
+            display: inline-flex; flex-direction: column; justify-content: space-between;
+            height: 126px; /* 3*40 + gap */
+            margin-right: 10px; padding-top: 10px; padding-bottom: 10px;
+            font-weight: bold; color: #64748b; font-size: 12px; text-align: right;
+        }
+        
+        .bit-header {
+            display: grid; 
+            margin-left: 25px; 
+            margin-bottom: 5px;
+        }
+        .bit-label {
+            text-align: center; font-weight: bold; font-family: monospace; font-size: 18px; color: #0f172a;
+            border-bottom: 2px solid #cbd5e1;
+        }
+
+        /* 刷题输入框 */
+        .exam-input {
+            font-family: monospace; font-size: 1.5rem; letter-spacing: 0.2em; font-weight: bold;
+            border: 2px dashed #cbd5e1; background: #f8fafc; padding: 4px 12px; border-radius: 6px; width: 100%;
+            transition: 0.3s;
+        }
+        .exam-input:focus { border-color: #3b82f6; background: #fff; outline: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="nav-header">
+            <div>
+                <h1 class="text-xl font-bold">通信原理复习 (融合版 v6.1)</h1>
+                <p class="text-xs opacity-70">波形演示 + 方块特训</p>
+            </div>
+            <div>
+                <button id="btn-learn" class="mode-btn active" onclick="setMode('learn')">📖 演示模式(波形)</button>
+                <button id="btn-exam" class="mode-btn" onclick="setMode('exam')">✏️ 刷题模式(方块)</button>
+            </div>
+        </div>
+
+        <div class="content-board">
+
+            <!-- 1. 演示模式 (Canvas 波形图) -->
+            <div id="view-learn">
+                <div class="flex gap-4 mb-6 bg-slate-50 p-4 rounded border border-slate-200 items-center">
+                    <div class="flex-grow">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">输入码元序列 (0/1):</label>
+                        <input type="text" id="learn-input" value="101100001" 
+                               class="w-full border border-slate-300 rounded px-3 py-2 font-mono text-xl tracking-widest outline-none focus:border-blue-500 shadow-sm"
+                               oninput="renderLearn()">
+                    </div>
+                    <button onclick="randomLearnBits()" class="h-10 mt-5 bg-blue-600 hover:bg-blue-700 text-white px-6 rounded font-bold transition">随机生成</button>
+                </div>
+
+                <div class="mb-4">
+                    <span class="text-xs font-bold text-slate-400 mr-2 block mb-1">二元码:</span>
+                    <div id="nav-binary-learn" class="inline-block"></div>
+                </div>
+                <div class="mb-6">
+                    <span class="text-xs font-bold text-slate-400 mr-2 block mb-1">三元码:</span>
+                    <div id="nav-ternary-learn" class="inline-block"></div>
+                </div>
+
+                <!-- 规则与口诀 (恢复详细版) -->
+                <div id="learn-rule" class="rule-box shadow-sm"></div>
+
+                <!-- Canvas 绘图区 -->
+                <h3 class="font-bold text-lg mb-2 text-center text-slate-700" id="learn-chart-title">---</h3>
+                <div class="canvas-wrapper shadow-inner">
+                    <canvas id="learn-canvas" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- 2. 刷题模式 (方块填色) -->
+            <div id="view-exam" class="hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 border-b border-slate-100 pb-4 gap-4">
+                    <div class="w-full md:w-auto flex-grow">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-indigo-600 text-white text-xs px-2 py-1 rounded font-bold">填色题</span>
+                            <span class="text-slate-500 text-sm">当前题型: <span id="exam-type-name" class="font-bold text-black text-lg">---</span></span>
+                        </div>
+                        <div class="mb-1 text-xs text-slate-500 font-bold">题目序列 (可直接修改自定义):</div>
+                        <input type="text" id="exam-input-bits" class="exam-input" oninput="updateExamGridFromInput()">
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <button onclick="nextQuestion()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition flex items-center gap-1">
+                            <span>🔄</span> 换一题 (长序列)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 答题方块区域 -->
+                <div class="overflow-x-auto pb-8 text-center select-none">
+                    <div class="inline-block text-left">
+                        <!-- 码元标号 (JS生成) -->
+                        <div id="exam-grid-header" class="bit-header"></div>
+                        
+                        <div class="flex">
+                            <!-- Y轴标号 -->
+                            <div class="row-labels">
+                                <div>+1</div>
+                                <div>0</div>
+                                <div>-1</div>
+                            </div>
+                            <!-- 核心网格 (JS生成) -->
+                            <div id="exam-grid" class="grid-container shadow-md"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 按钮与反馈 -->
+                <div class="max-w-md mx-auto space-y-3">
+                    <button id="btn-submit" onclick="submitExam()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg text-lg transition transform active:scale-95">
+                        提交答案 (Submit)
+                    </button>
+                    <button id="btn-next" onclick="nextQuestion()" class="hidden w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-lg text-lg">
+                        下一题 (Next)
+                    </button>
+
+                    <div id="exam-feedback" class="hidden p-4 rounded border text-sm animate-fade-in"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ================= 配置与数据 (恢复详细版) =================
+        const CODE_TYPES = {
+            // (a) 单极性不归零
+            NRZ_UNI: { 
+                name: "单极性不归零码 (NRZ)",
+                def: "Unipolar Non-Return-to-Zero",
+                rule: "“1”为高电平，“0”为零电平。在整个码元期间电平保持不变。",
+                feature: "有直流分量，无法提取位同步信息，判决门限不稳（适合极短距离）。"
+            },
+            // (b) 双极性不归零
+            NRZ_BI: { 
+                name: "双极性不归零码",
+                def: "Bipolar Non-Return-to-Zero",
+                rule: "“1”为正电平，“0”为负电平。码元期间不回归零点。",
+                feature: "无直流分量（若0/1等概），抗干扰能力强于单极性，判决门限为0。"
+            },
+            // (c) 单极性归零
+            RZ_UNI: { 
+                name: "单极性归零码 (RZ)",
+                def: "Unipolar Return-to-Zero",
+                rule: "“1”为高电平（占半个周期），后半周期归零；“0”始终为零。",
+                feature: "含有丰富的定时线谱（可直接提取时钟），但占用频带宽度是NRZ的两倍。"
+            },
+            // (d) 双极性归零
+            RZ_BI: { 
+                name: "双极性归零码",
+                def: "Bipolar Return-to-Zero",
+                rule: "“1”为正脉冲（半周期），“0”为负脉冲（半周期）。脉冲后均归零。",
+                feature: "收发双方容易保持同步，判决门限为0，抗噪性能好。"
+            },
+            // (e) 传号差分 (NRZ-M)
+            DIFF_MARK: { 
+                name: "传号差分码 (Diff-Mark)",
+                def: "Differential Encoding (Mark)",
+                rule: "【见1跳变，见0不变】。利用电平的跳变来表示“1”。",
+                feature: "解决了相位模糊问题（倒π现象），常用于DPSK系统。"
+            },
+            // (f) 空号差分 (NRZ-S)
+            DIFF_SPACE: { 
+                name: "空号差分码 (Diff-Space)",
+                def: "Differential Encoding (Space)",
+                rule: "【见0跳变，见1不变】。利用电平的跳变来表示“0”。",
+                feature: "同样解决相位模糊，与传号差分逻辑相反。"
+            },
+            // 三元码
+            AMI: {
+                name: "AMI 码 (信号交替反转)",
+                def: "Alternative Mark Inversion",
+                rule: "“0”保持零电平；“1”交替变换为 +1 和 -1。",
+                feature: "无直流，高低频分量少。缺点：连0时不含定时信息。"
+            },
+            HDB3: {
+                name: "HDB3 码 (三阶高密度双极性)",
+                def: "High Density Bipolar of Order 3",
+                rule: "4个连0时，用破坏脉冲V取代。规则：(1)V与前一脉冲同极性 (2)两V间脉冲数为偶时，首个0变B，B与前一脉冲异极性。",
+                feature: "保留了AMI优点，且限制了连0个数（不超过3个），利于时钟提取。"
+            },
+            B6ZS: {
+                name: "B6ZS 码 (六零替换)",
+                def: "Bipolar with 6-Zero Substitution",
+                rule: "6个连0时取代。若前脉冲为+，填0+-0-+；若为-，填0-+0+-。(即0VB0VB)",
+                feature: "用于北美T2载波，解决长连0问题。"
+            }
+        };
+
+        const BINARY_KEYS = ['NRZ_UNI', 'NRZ_BI', 'RZ_UNI', 'RZ_BI', 'DIFF_MARK', 'DIFF_SPACE'];
+        const TERNARY_KEYS = ['AMI', 'HDB3', 'B6ZS'];
+
+        // 绘图配置 (Learn Mode)
+        const CANVAS_CFG = {
+            gridColor: '#cbd5e1',
+            axisColor: '#334155',
+            lineColor: '#2563eb',
+            bitWidth: 50,
+            halfWidth: 25,
+            paddingLeft: 50,
+            paddingTop: 30
+        };
+
+        let state = {
+            mode: 'learn',
+            curCode: 'NRZ_UNI', // Learn mode selection
+            exam: {
+                bits: '',
+                type: '',
+                userGrid: [], 
+                ansGrid: [],
+                answered: false
+            }
+        };
+
+        // ================= 编码核心 (通用) =================
+        // 返回数组: [val, val, ...] 对应每个半周期
+        const Encoders = {
+            NRZ_UNI: (b) => b.split('').flatMap(x => x=='1' ? [1,1] : [0,0]),
+            NRZ_BI:  (b) => b.split('').flatMap(x => x=='1' ? [1,1] : [-1,-1]),
+            RZ_UNI:  (b) => b.split('').flatMap(x => x=='1' ? [1,0] : [0,0]),
+            RZ_BI:   (b) => b.split('').flatMap(x => x=='1' ? [1,0] : [-1,0]),
+            DIFF_MARK: (bits) => {
+                let res = []; let curr = 1; 
+                for(let b of bits) { if(b=='1') curr = -curr; res.push(curr, curr); }
+                return res;
+            },
+            DIFF_SPACE: (bits) => {
+                let res = []; let curr = 1;
+                for(let b of bits) { if(b=='0') curr = -curr; res.push(curr, curr); }
+                return res;
+            },
+            AMI: (bits) => {
+                let res = []; let p = -1;
+                for(let b of bits) {
+                    if(b=='0') res.push(0,0);
+                    else { p = -p; res.push(p,p); }
+                }
+                return res;
+            },
+            HDB3: (bits) => {
+                let arr = bits.split('').map(Number);
+                let out = new Array(arr.length).fill(0);
+                let lastP = -1; let z = 0; let pCount = 0;
+                for(let i=0; i<arr.length; i++){
+                    if(arr[i]==1) { lastP = -lastP; out[i] = lastP; z=0; pCount++; }
+                    else {
+                        z++;
+                        if(z==4) {
+                            if(pCount%2==1) { out[i] = lastP; lastP=out[i]; } 
+                            else { out[i-3] = -lastP; out[i] = out[i-3]; lastP=out[i]; }
+                            z=0; pCount=0;
+                        }
+                    }
+                }
+                return out.flatMap(x => [x,x]);
+            },
+            B6ZS: (bits) => {
+                let arr = bits.split('').map(Number);
+                let out = new Array(arr.length).fill(0);
+                let lastP = -1; let i=0;
+                while(i<arr.length){
+                    let h6=true;
+                    if(i+5<arr.length){ for(let k=0;k<6;k++) if(arr[i+k]!=0) h6=false; } else h6=false;
+                    if(h6){
+                        let p = lastP;
+                        out[i]=0; out[i+1]=p; out[i+2]=-p; out[i+3]=0; out[i+4]=-p; out[i+5]=p;
+                        lastP=p; i+=6;
+                    } else {
+                        if(arr[i]==1) { lastP=-lastP; out[i]=lastP; }
+                        i++;
+                    }
+                }
+                return out.flatMap(x => [x,x]);
+            }
+        };
+
+        // ================= 初始化 =================
+        window.onload = () => {
+            initLearnNav();
+            setMode('learn');
+        };
+
+        function initLearnNav() {
+            const c1 = document.getElementById('nav-binary-learn');
+            const c2 = document.getElementById('nav-ternary-learn');
+            
+            const makeBtn = (k, container) => {
+                const btn = document.createElement('span');
+                btn.innerText = CODE_TYPES[k].name;
+                btn.className = 'type-btn';
+                btn.dataset.key = k;
+                btn.onclick = () => {
+                    state.curCode = k;
+                    document.querySelectorAll('#view-learn .type-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderLearn();
+                };
+                container.appendChild(btn);
+                if(k === state.curCode) btn.classList.add('active');
+            };
+
+            BINARY_KEYS.forEach(k => makeBtn(k, c1));
+            TERNARY_KEYS.forEach(k => makeBtn(k, c2));
+        }
+
+        function setMode(m) {
+            state.mode = m;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${m}`).classList.add('active');
+            
+            document.getElementById('view-learn').classList.add('hidden');
+            document.getElementById('view-exam').classList.add('hidden');
+            document.getElementById(`view-${m}`).classList.remove('hidden');
+
+            if(m === 'learn') renderLearn();
+            else if(state.exam.bits === '') nextQuestion();
+        }
+
+        // ================= 1. 演示模式逻辑 (Canvas Drawing) =================
+
+        function randomLearnBits() {
+            let s = ""; for(let i=0;i<10;i++) s+=Math.random()>.5?"1":"0";
+            if(Math.random()>.5) s = "100000001"; 
+            document.getElementById('learn-input').value = s;
+            renderLearn();
+        }
+
+        function renderLearn() {
+            const inputVal = document.getElementById('learn-input').value.replace(/[^01]/g,'') || '0';
+            const type = state.curCode;
+            const info = CODE_TYPES[type];
+            
+            document.getElementById('learn-chart-title').innerText = info.name;
+            
+            // 恢复详细口诀排版
+            document.getElementById('learn-rule').innerHTML = `
+                <div class="rule-title">📝 ${info.name}</div>
+                <div class="rule-item"><span class="rule-label">定义：</span><span class="rule-content">${info.def}</span></div>
+                <div class="rule-item"><span class="rule-label">判决规则：</span><span class="rule-content bg-yellow-100 px-2 rounded text-blue-900 font-bold">${info.rule}</span></div>
+                <div class="rule-item"><span class="rule-label">特点：</span><span class="rule-content">${info.feature}</span></div>
+            `;
+
+            const data = Encoders[type](inputVal);
+            drawWaveform(document.getElementById('learn-canvas'), inputVal, data);
+        }
+
+        function drawWaveform(canvas, bits, data) {
+            const parent = canvas.parentElement;
+            let w = parent.offsetWidth > 0 ? parent.offsetWidth - 4 : 800;
+            
+            // Layout params
+            const bitW = CANVAS_CFG.bitWidth;
+            const pl = CANVAS_CFG.paddingLeft; 
+            const pt = CANVAS_CFG.paddingTop;  
+            const reqW = bits.length * bitW + pl + 40; 
+            
+            canvas.width = Math.max(w, reqW);
+            canvas.height = 200;
+
+            const ctx = canvas.getContext('2d');
+            const H = canvas.height;
+            const W = canvas.width;
+            const midY = H / 2 + (pt/2); 
+            const scaleY = (H - pt - 40) / 2; 
+
+            // Clear
+            ctx.clearRect(0,0,W,H);
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,W,H);
+
+            // 1. Grid & Numbers
+            ctx.lineWidth = 1;
+            for(let i=0; i<=bits.length; i++) {
+                let x = pl + i * bitW;
+                // Vertical Line
+                ctx.strokeStyle = CANVAS_CFG.gridColor; 
+                ctx.beginPath(); ctx.moveTo(x, pt); ctx.lineTo(x, H - 20); ctx.stroke();
+                
+                // Half-bit dashed
+                if(i < bits.length) {
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath(); ctx.moveTo(x + bitW/2, pt); ctx.lineTo(x + bitW/2, H - 20); ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Bit Number
+                    ctx.fillStyle = "#000"; ctx.font = "bold 20px monospace"; ctx.textAlign = "center";
+                    ctx.fillText(bits[i], x + bitW/2, pt - 10);
+                }
+            }
+
+            // 2. Axes
+            ctx.strokeStyle = CANVAS_CFG.axisColor; ctx.lineWidth = 2;
+            // X Axis
+            ctx.beginPath(); ctx.moveTo(pl, midY); ctx.lineTo(W - 10, midY); ctx.stroke();
+            // X Arrow
+            ctx.beginPath(); ctx.moveTo(W-15, midY-5); ctx.lineTo(W-5, midY); ctx.lineTo(W-15, midY+5); ctx.fill();
+            ctx.fillText("t", W-10, midY + 20);
+            // Y Axis
+            ctx.beginPath(); ctx.moveTo(pl, pt); ctx.lineTo(pl, H - 20); ctx.stroke();
+            // Y Arrow
+            ctx.beginPath(); ctx.moveTo(pl-5, pt+10); ctx.lineTo(pl, pt); ctx.lineTo(pl+5, pt+10); ctx.fill();
+            ctx.fillText("V", pl - 15, pt + 10);
+
+            // 3. Y Labels
+            ctx.font = "12px sans-serif"; ctx.fillStyle = "#64748b"; ctx.textAlign = "right";
+            ctx.fillText("+1", pl - 8, midY - scaleY + 4);
+            ctx.fillText("0", pl - 8, midY + 4);
+            ctx.fillText("-1", pl - 8, midY + scaleY + 4);
+
+            // 4. Waveform
+            if(data && data.length > 0) {
+                ctx.strokeStyle = CANVAS_CFG.lineColor;
+                ctx.lineWidth = 3;
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+
+                let step = bitW / 2;
+                for(let i=0; i<data.length; i++) {
+                    let val = data[i];
+                    let x1 = pl + i * step;
+                    let x2 = pl + (i+1) * step;
+                    let y = midY - val * scaleY;
+                    if(i===0) ctx.moveTo(x1, y);
+                    else ctx.lineTo(x1, y);
+                    ctx.lineTo(x2, y);
+                }
+                ctx.stroke();
+            }
+        }
+
+        // ================= 2. 刷题模式逻辑 (Grid Blocks) =================
+
+        function nextQuestion() {
+            const types = [...BINARY_KEYS, ...TERNARY_KEYS];
+            const type = types[Math.floor(Math.random()*types.length)];
+            
+            // 增长码元至 12 位
+            let len = 12;
+            let bits = ""; for(let i=0; i<len; i++) bits+= Math.random()>.5?"1":"0";
+            
+            // 确保特殊码型有展示空间
+            if(type=='HDB3' || type=='B6ZS') bits = "100000001000";
+
+            document.getElementById('exam-input-bits').value = bits;
+            startExamWithBits(bits, type);
+        }
+
+        function updateExamGridFromInput() {
+            const raw = document.getElementById('exam-input-bits').value;
+            const bits = raw.replace(/[^01]/g, ''); // 允许空，但不允许非01
+            if(!bits) return; // Wait for input
+            
+            // 保持当前类型不变，只更新Grid
+            startExamWithBits(bits, state.exam.type);
+        }
+
+        function startExamWithBits(bits, type) {
+            state.exam.type = type;
+            state.exam.bits = bits;
+            state.exam.userGrid = new Array(bits.length*2).fill(0);
+            state.exam.ansGrid = Encoders[type](bits);
+            state.exam.answered = false;
+
+            document.getElementById('exam-type-name').innerText = CODE_TYPES[type].name;
+            document.getElementById('exam-feedback').classList.add('hidden');
+            document.getElementById('btn-submit').classList.remove('hidden');
+            document.getElementById('btn-next').classList.add('hidden');
+
+            buildGridHTML(bits, 'exam-grid', 'exam-grid-header', true, null);
+        }
+
+        // Grid Builder (Refactored from v5.0)
+        function buildGridHTML(bits, containerId, headerId, isInteractive, dataArr) {
+            const container = document.getElementById(containerId);
+            const header = document.getElementById(headerId);
+            container.innerHTML = '';
+            header.innerHTML = '';
+
+            const totalCols = bits.length * 2;
+            container.style.gridTemplateColumns = `repeat(${totalCols}, 40px)`; 
+            header.style.gridTemplateColumns = `repeat(${bits.length}, 80px)`; 
+
+            // Header numbers
+            for(let b of bits) {
+                const div = document.createElement('div');
+                div.className = 'bit-label'; div.innerText = b;
+                header.appendChild(div);
+            }
+
+            // Grid Cells (Rows: +1, 0, -1)
+            for(let c=0; c<totalCols; c++) createCell(container, 1, c, isInteractive);
+            for(let c=0; c<totalCols; c++) createCell(container, 0, c, isInteractive);
+            for(let c=0; c<totalCols; c++) createCell(container, -1, c, isInteractive);
+        }
+
+        function createCell(container, levelValue, colIndex, isInteractive) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.col = colIndex;
+            cell.dataset.level = levelValue;
+
+            if(isInteractive) {
+                cell.onclick = () => {
+                    if(state.exam.answered) return;
+                    state.exam.userGrid[colIndex] = levelValue;
+                    updateColumnUI(container, colIndex, levelValue);
+                };
+                // Render initial state (0)
+                if(state.exam.userGrid[colIndex] === levelValue) {
+                    fillCell(cell, levelValue);
+                }
+            }
+            container.appendChild(cell);
+        }
+
+        function fillCell(el, val) {
+            el.classList.add(val === 1 ? 'active-pos' : (val === 0 ? 'active-zero' : 'active-neg'));
+        }
+
+        function updateColumnUI(container, colIdx, activeLevel) {
+            const cells = container.querySelectorAll(`.grid-cell[data-col="${colIdx}"]`);
+            cells.forEach(c => {
+                c.classList.remove('active-pos', 'active-zero', 'active-neg');
+                if(parseInt(c.dataset.level) === activeLevel) fillCell(c, activeLevel);
+            });
+        }
+
+        function submitExam() {
+            if(state.exam.answered) return;
+            state.exam.answered = true;
+
+            const user = state.exam.userGrid;
+            const ans = state.exam.ansGrid;
+            let correct = true;
+            for(let i=0; i<user.length; i++) if(user[i] !== ans[i]) correct = false;
+
+            // Visual Feedback
+            const container = document.getElementById('exam-grid');
+            for(let col=0; col<ans.length; col++) {
+                const correctVal = ans[col];
+                const userVal = user[col];
+                
+                // Show Correct Outline
+                const correctCell = container.querySelector(`.grid-cell[data-col="${col}"][data-level="${correctVal}"]`);
+                if(correctCell) correctCell.classList.add('correct-outline');
+
+                // Show Wrong Choice
+                if(userVal !== correctVal) {
+                    const wrongCell = container.querySelector(`.grid-cell[data-col="${col}"][data-level="${userVal}"]`);
+                    if(wrongCell) wrongCell.classList.add('wrong-choice');
+                }
+            }
+
+            const fb = document.getElementById('exam-feedback');
+            fb.classList.remove('hidden');
+            if(correct) {
+                fb.className = "mt-4 p-4 rounded bg-green-100 text-green-800 border border-green-300";
+                fb.innerHTML = `<strong>✅ 恭喜全对！</strong> 你完美画出了“${CODE_TYPES[state.exam.type].name}”。`;
+            } else {
+                fb.className = "mt-4 p-4 rounded bg-red-100 text-red-800 border border-red-300";
+                fb.innerHTML = `<strong>❌ 还有错误</strong><br>🟩 绿框=正确答案<br>🌫️ 斜纹=你填错的位置<br>提示：${CODE_TYPES[state.exam.type].rule}`;
+            }
+
+            document.getElementById('btn-submit').classList.add('hidden');
+            document.getElementById('btn-next').classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
